@@ -83,5 +83,5 @@ instance/*
 !instance/.gitignore
 .webassets-cache
 .env
-
+test.py
 

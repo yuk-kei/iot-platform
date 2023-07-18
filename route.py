@@ -1,14 +1,9 @@
 from flask import request, jsonify
-from flask_restx import Api
 import time, uuid
 
 from app import app
 from data_handler import search_data_influxdb
 from model import Device, db
-
-
-#
-# rest_api = Api(version="1.0", title="Users API")
 
 
 @app.route('/hello')

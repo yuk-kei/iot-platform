@@ -4,9 +4,8 @@ from datetime import datetime, timedelta
 from influxdb_client.client import influxdb_client
 
 client = influxdb_client.InfluxDBClient(
-    url="http://128.195.151.182:8086",
-    token="FzxLoZXd06eIEYzueFsX1Kj21w5LwClTr4TC0w6NrWhzuBqeAVl0Sb9Nqiut5HRNZqcHgIzd0CalUl1__AynLw==",
-    # token = os.environ.get('INFLUX_TOKEN'),
+    url=os.environ.get('INFLUX_URL'),
+    token=os.environ.get('INFLUX_TOKEN'),
     org="calit2"
 )
 
