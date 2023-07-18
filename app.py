@@ -1,7 +1,10 @@
 from flask import Flask
+from flask_cors import CORS
+
 from model import db, Device
 
 app = Flask(__name__)
+CORS(app)
 app.config.from_object('config.DevelopmentConfig')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
