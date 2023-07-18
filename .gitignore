@@ -82,6 +82,9 @@ fabric.properties
 instance/*
 !instance/.gitignore
 .webassets-cache
+
+### project specific
 .env
 test.py
-
+.idea
+__pycache__
