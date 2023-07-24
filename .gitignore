@@ -88,3 +88,12 @@ instance/*
 test.py
 .idea
 __pycache__
+
+### device-service
+device-service/.env
+
+### control-service
+control-service/.env
+
+### data_handler-service
+data_handler-service/.env

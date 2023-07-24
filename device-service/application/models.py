@@ -1,6 +1,4 @@
-from flask_sqlalchemy import SQLAlchemy
-
-db = SQLAlchemy()
+from . import db
 
 
 class Device(db.Model):
@@ -16,5 +14,3 @@ class Device(db.Model):
 
     def __repr__(self):
         return '<Device %r>' % self.name
-
-
