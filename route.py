@@ -17,13 +17,14 @@ def check_register():
         device_id = request.json.get('device_id')
         name = request.json.get('name')
         type = request.json.get('type')
+        category = request.json.get('category')
         location = request.json.get('location')
         status = request.json.get('status')
         ip_address = request.json.get('ip_address')
         port = request.json.get('port')
         if not device_id:
             device_id = next_id()
-            new_device = Device(id=device_id, name=name, type=type, location=location, status=status,
+            new_device = Device(id=device_id, name=name, type=type, category=category, location=location, status=status,
                                 ip_address=ip_address, port=port)
             db.session.add(new_device)
             db.session.commit()
@@ -38,7 +39,8 @@ def check_register():
         # Logic for handling GET requests
         devices = Device.query.all()
         device_list = [{'device_id': device.id, 'name': device.name, 'type': device.type, 'location': device.location,
-                        'status': device.status, 'ip_address': device.ip_address} for device in devices]
+                        'category': device.category, 'status': device.status, 'ip_address': device.ip_address,
+                        'port': device.port} for device in devices]
         return jsonify(device_list), 200
 
 
@@ -80,7 +82,7 @@ def get_type():
     return jsonify(device_list), 200
 
 
-@app.route("/api/devices/filter_by")
+@app.route("/api/devices/filter_by", methods=['POST', 'GET'])
 def filter_by_field():
     # Get the field name and value from the request
     field_name = request.json.get('field_name')
