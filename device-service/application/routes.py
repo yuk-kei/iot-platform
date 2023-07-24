@@ -23,7 +23,7 @@ def check_register():
         ip_address = request.json.get('ip_address')
         port = request.json.get('port')
         if not device_id:
-            device_id = next_id()
+            device_id = next_short_id()
             new_device = Device(id=device_id, name=name, type=type, category=category, location=location, status=status,
                                 ip_address=ip_address, port=port)
             db.session.add(new_device)
@@ -99,6 +99,7 @@ def filter_by_field():
         return jsonify({'message': 'Field name not found '}), 404
 
 
-def next_id():
-    uid = uuid.uuid4().bytes_le[:8].hex()
-    return '%015d%s000' % (int(time.time() * 1000), uid)
+def next_short_id():
+    current_time_str = str(int(time.time()))
+    uid = uuid.uuid4().bytes_le[:4].hex()
+    return current_time_str + uid
