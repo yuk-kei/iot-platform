@@ -1,0 +1,7 @@
+FROM bitnami/python
+COPY requirements.txt /device-app/requirements.txt
+WORKDIR /device-app
+RUN pip install -r requirements.txt
+COPY . /device-app
+CMD ["gunicorn", "-c", "guni_conf.py", "run:app"]
+EXPOSE 9002
