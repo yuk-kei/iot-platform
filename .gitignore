@@ -86,6 +86,7 @@ instance/*
 ### project specific
 .env
 test.py
+requirements.txt
 .idea
 __pycache__
 
@@ -93,7 +94,7 @@ __pycache__
 device-service/.env
 
 ### control-service
-control-service/.env
+supervise-service/.env
 
 ### data_handler-service
-data_handler-service/.env
+data-service/.env
