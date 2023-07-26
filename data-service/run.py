@@ -1,8 +1,6 @@
-from application import create_app, db
-from flask_migrate import Migrate
+from application import create_app
 
 app = create_app()
-migrate = Migrate(app, db)
 
 
 @app.after_request

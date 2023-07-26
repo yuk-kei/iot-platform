@@ -1,42 +1,37 @@
 import os
-from datetime import datetime, timedelta
 
 from influxdb_client.client import influxdb_client
 
-client = influxdb_client.InfluxDBClient(
-    url=os.environ.get('INFLUX_URL'),
-    token=os.environ.get('INFLUX_TOKEN'),
-    org="calit2"
-)
 
-write_api = client.write_api()
-query_api = client.query_api()
-bucket_name = "sensor_data"
+class InfluxDataHandler:
+    def __init__(self):
+        self.client = influxdb_client.InfluxDBClient(
+            url=os.environ.get('INFLUX_URL'),
+            token=os.environ.get('INFLUX_TOKEN'),
+            org=os.environ.get('INFLUX_ORG')
+        )
 
-# Calculate time range for the query
-now = datetime.utcnow()
-one_hour_ago = now - timedelta(hours=1)
+        self.write_api = self.client.write_api()
+        self.query_api = self.client.query_api()
+        self.bucket_name = os.environ.get('INFLUX_BUCKET')
+
+    def search_data_influxdb(self, field_name, field_value, start_time, end_time="0h"):
+        query = f'from(bucket: "{self.bucket_name}") ' \
+                f'|> range(start: {start_time}, stop:{end_time})' \
+                f'|> filter(fn: (r) => r["_{field_name}"] == "{field_value}")'
+        result = self.query_api.query(query)
+        return result
+
+    def query_large_data(self, field_name, field_value, start_time, end_time="0h"):
+        query = f'from(bucket: "{self.bucket_name}") ' \
+                f'|> range(start: {start_time}, stop:{end_time})' \
+                f'|> filter(fn: (r) => r["_{field_name}"] == "{field_value}")'
+        large_stream = self.query_api.query_stream(query)
+        large_stream.close()
+        return large_stream
+
+    def query_measurements(self, query):
+        result = self.query_api.query(query)
+        return result
 
 
-def test():
-    record = search_data_influxdb("measurement", "Device 1", "-1h")
-    output = record.to_json(indent=2)
-    print(output)
-
-
-def search_data_influxdb(field_name, field_value, start_time, end_time="0h"):
-    query = f'from(bucket: "{bucket_name}") ' \
-            f'|> range(start: {start_time}, stop:{end_time})'\
-            f'|> filter(fn: (r) => r["_{field_name}"] == "{field_value}")'
-    result = query_api.query(query)
-    return result
-
-
-def query_measurements(query):
-    result = query_api.query(query)
-    return result
-
-
-if __name__ == '__main__':
-    test()
-    # app.run()
