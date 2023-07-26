@@ -92,9 +92,12 @@ __pycache__
 
 ### device-service
 device-service/.env
+device-service/*.pid
 
 ### control-service
 supervise-service/.env
+supervise-service/*.pid
 
 ### data_handler-service
 data-service/.env
+data-service/*.pid
