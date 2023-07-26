@@ -37,3 +37,12 @@ def execute_query():
     print(query)
     result = influx_handler.query_measurements(query)
     return result.to_json(), 200
+
+
+@data_blueprint.route("/formatted", methods=['POST'])
+def query_data_frame():
+    query = request.json.get('query', None)
+    print(query)
+    result = influx_handler.query_measurements(query)
+    result = influx_handler.to_dict(result)
+    return result, 200

@@ -31,7 +31,38 @@ class InfluxDataHandler:
         return large_stream
 
     def query_measurements(self, query):
-        result = self.query_api.query(query)
-        return result
+
+        return self.query_api.query(query)
+
+    def to_dict(self, result):
+
+        list_of_dict = []
+        for table in result:
+            for records in table.records:
+                list_of_dict.append({
+                    "time": records["_time"],
+                    "measurement": records["_measurement"],
+                    "field": records["_field"],
+                    "value": records["_value"]
+                })
+        return list_of_dict
 
 
+"""test code"""
+# client = influxdb_client.InfluxDBClient(
+#     url="http://128.195.151.182:8086",
+#     token="FzxLoZXd06eIEYzueFsX1Kj21w5LwClTr4TC0w6NrWhzuBqeAVl0Sb9Nqiut5HRNZqcHgIzd0CalUl1__AynLw==",
+#     org="calit2"
+# )
+# query_api = client.query_api()
+# tables = query_api.query_data_frame('from(bucket:"sensor_data") |> range(start: -20h)')
+#
+# df = query_api.query_data_frame('from(bucket:"sensor_data") |> range(start: -21h) '
+#                                 '|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value") '
+#                                 '|> keep(columns: ["time", "values"])')
+# print(tables.to_string())
+# for table in tables:
+#
+#     for record in table.records:
+#
+#         print(str(record["_time"]) + " - " + record["_field"] + ": " + str(record["_value"]))
