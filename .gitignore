@@ -84,8 +84,8 @@ instance/*
 .webassets-cache
 
 ### project specific
-.env
-test.py
+Platform-Monolith_version/.env
+Platform-Monolith_version/test.py
 requirements.txt
 .idea
 __pycache__

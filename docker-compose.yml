@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  data-wizard:
+    build: ./data-service/Dockerfile
+    volumes:
+      - ./data-service:/data-app
+    networks:
+      - iot-platform
+
+  device-manager:
+    build: ./device-service/Dockerfile
+    volumes:
+      - ./device-service:/device-app
+    networks:
+      - iot-platform
+    # ... (your Flask app 2 configuration)
+
+#  flask_app_3:
+#    # ... (your Flask app 3 configuration)
+
+  nginx:
+    image: nginx
+    ports:
+      - "80:80"    # Redirect HTTP to HTTPS
+#      - "443:443"  # HTTPS
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+#      - /path/to/certs:/etc/nginx/certs:ro   # Mount SSL certificate folder
+    networks:
+      - my_network
+
+networks:
+  iot-platform:
+    driver: bridge
