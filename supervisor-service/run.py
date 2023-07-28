@@ -1,8 +1,6 @@
-from application import create_app, db
-from flask_migrate import Migrate
+from application import create_app
 
 app = create_app()
-migrate = Migrate(app, db)
 
 
 @app.after_request
@@ -18,4 +16,4 @@ def add_security_headers(response):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=app.config['DEVICES_MANAGER_PORT'])
+    app.run(host='0.0.0.0', port=app.config['SYS_CONTROL_PORT'])

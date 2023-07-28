@@ -24,8 +24,17 @@ services:
       - iot-platform
     # ... (your Flask app 2 configuration)
 
-#  flask_app_3:
-#    # ... (your Flask app 3 configuration)
+  supervisor:
+    build:
+      context: ./supervisor-service
+      dockerfile: Dockerfile.supervisor
+    ports:
+      - "9003:9003"
+    volumes:
+      - ./supervisor-service:/supervisor-app
+    networks:
+      - iot-platform
+    # ... (your Flask app 3 configuration)
 
   nginx:
     image: nginx

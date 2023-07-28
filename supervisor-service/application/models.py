@@ -4,7 +4,5 @@ from dataclasses import dataclass
 @dataclass
 class DeviceInfo:
     id: str
-    name: str
-    ipaddress: str
+    ip_address: str
     port: int
-    status: str

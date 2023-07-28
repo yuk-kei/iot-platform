@@ -95,7 +95,7 @@ device-service/.env
 device-service/*.pid
 
 ### control-service
-supervise-service/.env
+supervisor-service/.env
 supervise-service/*.pid
 
 ### data_handler-service

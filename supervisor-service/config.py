@@ -7,9 +7,9 @@ load_dotenv()
 class BaseConfig:
     SECRET_KEY = os.getenv('SECRET_KEY', 'some secret words')
     ITEMS_PER_PAGE = 10
-    DEVICES_MANAGER_PORT = 9002
-    DATA_HANDLER_PORT = 9001
-    DEVICES_CONTROLLER_PORT = 5000
+    DEVICES_MANAGER_PORT = os.environ.get('DEVICES_MANAGER_PORT')
+    DATA_WIZARD_PORT = os.environ.get('DATA_WIZARD_PORT')
+    SYS_CONTROL_PORT = os.environ.get('SYS_CONTROL_PORT')
 
 
 class DevelopmentConfig(BaseConfig):
