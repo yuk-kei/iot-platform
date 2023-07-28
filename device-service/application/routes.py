@@ -44,19 +44,19 @@ def check_register():
         return jsonify(device_list), 200
 
 
-@devices_blueprint.route("/delete")
+@devices_blueprint.route("/delete", methods=['POST', 'GET'])
 def delete_device():
     device_id = request.json.get('device_id')
     device = Device.query.get(device_id)
     if device:
         db.session.delete(device)
         db.session.commit()
-        return jsonify({'message': 'Device deleted.'}), 200
+        return jsonify({'message': 'Device deleted.' + device.id}), 200
     else:
         return jsonify({'message': 'Device ID not found in database.'}), 404
 
 
-@devices_blueprint.route("/update")
+@devices_blueprint.route("/update",  methods=['POST', 'GET'])
 def update_device():
     device_id = request.json.get('device_id')
     device = Device.query.get(device_id)
@@ -64,11 +64,12 @@ def update_device():
         device.name = request.json.get('name')
         device.type = request.json.get('type')
         device.location = request.json.get('location')
+        device.category = request.json.get('category')
         device.status = request.json.get('status')
         device.ip_address = request.json.get('ip_address')
         device.port = request.json.get('port')
         db.session.commit()
-        return jsonify({'message': 'Device updated.'}), 200
+        return jsonify({'message': 'Device updated.'} + device.id), 200
     else:
         return jsonify({'message': 'Device ID not found in database.'}), 404
 
@@ -77,8 +78,9 @@ def update_device():
 def get_type():
     type = request.json.get('type')
     devices = Device.query.filter_by(type=type).all()
-    device_list = [{'device_id': device.id, 'name': device.name, 'type': device.type, 'location': device.location,
-                    'status': device.status, 'ip_address': device.ip_address} for device in devices]
+    device_list = [{'device_id': device.id, 'name': device.name, 'type': device.type,
+                        'location': device.location, 'category': device.category, 'status': device.status,
+                        'ip_address': device.ip_address, 'port': device.port} for device in devices]
     return jsonify(device_list), 200
 
 
@@ -92,8 +94,9 @@ def filter_by_field():
         # Construct the filter dynamically based on the field name and value
         filter_kwargs = {field_name: field_value}
         devices = Device.query.filter_by(**filter_kwargs).all()
-        device_list = [{'device_id': device.id, 'name': device.name, 'type': device.type, 'location': device.location,
-                        'status': device.status, 'ip_address': device.ip_address} for device in devices]
+        device_list = [{'device_id': device.id, 'name': device.name, 'type': device.type,
+                        'location': device.location, 'category': device.category, 'status': device.status,
+                        'ip_address': device.ip_address, 'port': device.port} for device in devices]
         return jsonify(device_list), 200
     else:
         return jsonify({'message': 'Field name not found '}), 404

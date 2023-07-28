@@ -2,14 +2,22 @@ version: '3'
 
 services:
   data-wizard:
-    build: ./data-service/Dockerfile
+    build:
+      context: ./data-service
+      dockerfile: Dockerfile.data
+    ports:
+      - "9001:9001"
     volumes:
       - ./data-service:/data-app
     networks:
       - iot-platform
 
   device-manager:
-    build: ./device-service/Dockerfile
+    build:
+      context: ./device-service
+      dockerfile: Dockerfile.device
+    ports:
+      - "9002:9002"
     volumes:
       - ./device-service:/device-app
     networks:
@@ -28,7 +36,7 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
 #      - /path/to/certs:/etc/nginx/certs:ro   # Mount SSL certificate folder
     networks:
-      - my_network
+      - iot-platform
 
 networks:
   iot-platform:

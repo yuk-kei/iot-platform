@@ -1,7 +1,7 @@
 pidfile = 'data-wizard.pid'
 worker_tmp_dir = '/dev/shm'
-worker_class = 'gthread'
-# worker_class = 'gevent'
+# worker_class = 'gthread'
+worker_class = 'gevent'
 workers = 1
 worker_connections = 1000
 timeout = 30
