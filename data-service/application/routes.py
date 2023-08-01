@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, json
 
 from .data_handler import InfluxDataHandler
 
@@ -15,13 +15,15 @@ def hello():
 @data_blueprint.route("/query", methods=['POST'])
 def query_influx_data():
     if request.method == 'POST':
+        print(request.get_json())
         field_name = request.json.get('field_name')
         field_value = request.json.get('field_value')
         start_time = request.json.get('start_time')
         end_time = request.json.get('end_time')
 
         result = influx_handler.search_data_influxdb(field_name, field_value, start_time, end_time)
-        return result.to_json(), 200
+        result = influx_handler.to_dict(result)
+        return jsonify(result), 200
 
 
 @data_blueprint.route("/last_min/<string:field_name>")
@@ -45,4 +47,4 @@ def query_data_frame():
     print(query)
     result = influx_handler.query_measurements(query)
     result = influx_handler.to_dict(result)
-    return result, 200
+    return jsonify(result), 200

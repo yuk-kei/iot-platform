@@ -32,9 +32,9 @@ class DeviceController:
             response = requests.post(url=url, json={"device_id": device_id})
 
             if response.status_code == 200:
-                return "Device is not paused", 200
+                return "Device resumed", 200
             elif response.status_code == 400:
-                return "Device resumed", 400
+                return "Device is not paused", 400
 
             else:
                 return "Device not found", 404

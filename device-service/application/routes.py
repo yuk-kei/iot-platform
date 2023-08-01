@@ -51,7 +51,7 @@ def delete_device():
     if device:
         db.session.delete(device)
         db.session.commit()
-        return jsonify({'message': 'Device deleted.' + device.id}), 200
+        return jsonify({'device_id': device.id, 'message': 'Device deleted!'}), 200
     else:
         return jsonify({'message': 'Device ID not found in database.'}), 404
 

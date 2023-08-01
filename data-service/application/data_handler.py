@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 from influxdb_client.client import influxdb_client
 
@@ -15,14 +16,24 @@ class InfluxDataHandler:
         self.query_api = self.client.query_api()
         self.bucket_name = os.environ.get('INFLUX_BUCKET')
 
-    def search_data_influxdb(self, field_name, field_value, start_time, end_time="0h"):
+    def search_data_influxdb(self, field_name, field_value, start_time_str, end_time_str="0h"):
+        start_time = time_or_time_delta(start_time_str)
+
+        end_time = time_or_time_delta(end_time_str)
+
+        if field_name == "field" or field_name == "measurement" or field_name == "value":
+            field_name = "_" + field_name
+
         query = f'from(bucket: "{self.bucket_name}") ' \
                 f'|> range(start: {start_time}, stop:{end_time})' \
-                f'|> filter(fn: (r) => r["_{field_name}"] == "{field_value}")'
+                f'|> filter(fn: (r) => r["{field_name}"] == "{field_value}")'
         result = self.query_api.query(query)
         return result
 
     def query_large_data(self, field_name, field_value, start_time, end_time="0h"):
+        if field_name == "field" or field_name == "measurement" or field_name == "value":
+            field_name = "_" + field_name
+
         query = f'from(bucket: "{self.bucket_name}") ' \
                 f'|> range(start: {start_time}, stop:{end_time})' \
                 f'|> filter(fn: (r) => r["_{field_name}"] == "{field_value}")'
@@ -41,14 +52,49 @@ class InfluxDataHandler:
             for records in table.records:
                 list_of_dict.append({
                     "time": records["_time"],
-                    "measurement": records["_measurement"],
+                    # "measurement": records["_measurement"],
                     "field": records["_field"],
                     "value": records["_value"]
                 })
         return list_of_dict
 
 
+def time_or_time_delta(curr_time_str):
+
+    if len(curr_time_str) == 1:
+        return "Invalid time format"
+    if curr_time_str[-1] == 'd':
+        return curr_time_str
+    elif curr_time_str[-1] == 'h':
+        return curr_time_str
+    elif curr_time_str[-1] == 'm':
+        return curr_time_str
+    elif curr_time_str[-1] == 's':
+        return curr_time_str
+
+
+    try:
+        target_time = datetime.strptime(curr_time_str, '%Y-%m-%dT%H:%M:%S')
+        # target_time += utc_offset
+        target_time_seconds = int(target_time.timestamp())
+        return target_time_seconds
+
+    except ValueError:
+        try:
+            target_time = datetime.strptime(curr_time_str, '%Y-%m-%dT%H:%M')
+
+            target_time_seconds = int(target_time.timestamp())
+            return target_time_seconds
+        except ValueError:
+            print(f"Error: unable to parse time string {curr_time_str}")
+
+
+
+
 """test code"""
+input_time1 = "2023-07-31T15:30"
+output1 = time_or_time_delta(input_time1)
+print(output1)
 # client = influxdb_client.InfluxDBClient(
 #     url="http://128.195.151.182:8086",
 #     token="FzxLoZXd06eIEYzueFsX1Kj21w5LwClTr4TC0w6NrWhzuBqeAVl0Sb9Nqiut5HRNZqcHgIzd0CalUl1__AynLw==",
