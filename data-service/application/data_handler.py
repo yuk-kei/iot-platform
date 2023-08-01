@@ -50,8 +50,9 @@ class InfluxDataHandler:
         list_of_dict = []
         for table in result:
             for records in table.records:
+                local_time = records["_time"].astimezone()
                 list_of_dict.append({
-                    "time": records["_time"],
+                    "time": local_time.strftime("%Y-%m-%d %H:%M:%S"),
                     # "measurement": records["_measurement"],
                     "field": records["_field"],
                     "value": records["_value"]
@@ -83,8 +84,8 @@ def time_or_time_delta(curr_time_str):
 
 """test code"""
 
-# input_time1 = "2023-07-31T20:30:00.000Z"
-# input_time2 = "2023-07-31T20:34:00.000Z"
+# input_time1 = "2023-08-01T18:00:00.000Z"
+# input_time2 = "2023-08-01T18:39:00.000Z"
 # output1 = time_or_time_delta(input_time1)
 # output2 = time_or_time_delta(input_time2)
 # print(output1)
@@ -95,8 +96,10 @@ def time_or_time_delta(curr_time_str):
 #     org="calit2"
 # )
 # query_api = client.query_api()
-# tables = query_api.query_data_frame(f'from(bucket:"sensor_data") |> range(start: {output1}, stop:{output2})')
-#
+# tables = query_api.query(f'from(bucket:"sensor_data") |> range(start: {output1}, stop:{output2}) '
+#                                     '|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value") '
+#                                     '|> keep(columns: ["time", "values"])')
+# print(tables)
 # df = query_api.query_data_frame(f'from(bucket:"sensor_data") |> range(start: -21h) '
 #                                 '|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value") '
 #                                 '|> keep(columns: ["time", "values"])')

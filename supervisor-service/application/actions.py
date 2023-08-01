@@ -53,7 +53,7 @@ class DeviceController:
             response = requests.post(url=url, json={"device_id": device_id, "rate": rate})
 
             if response.status_code == 200:
-                return "rate change to" + str(rate), 200
+                return "rate change to " + str(rate), 200
 
             else:
                 return "Device not found or not running", 404
