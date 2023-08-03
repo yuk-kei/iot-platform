@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify, json, Response
 from flask_socketio import SocketIO, emit
-import reactivex as rx
 
 from .data_handler import InfluxDataHandler
 
@@ -69,4 +68,4 @@ def influx_query_loop():
     field_name = request.json.get('field_name')
     field_value = request.json.get('field_value')
 
-    return Response(influx_handler.stream_data(field_name,field_value, 5), mimetype='text/event-stream')
+    return Response(influx_handler.stream_data(field_name, field_value, 5), mimetype='text/event-stream')

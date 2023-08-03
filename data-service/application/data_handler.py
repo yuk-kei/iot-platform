@@ -1,19 +1,16 @@
+import json
 import os
 import gevent
 from datetime import timedelta
 
-import pandas as pd
-import reactivex as rx
-import hvplot.streamz
+
 from flask import jsonify
 
 from influxdb_client.client import influxdb_client
-from reactivex import operators as ops
 
-from streamz import Stream
 
 from dateutil.parser import parse
-from streamz.dataframe import DataFrame
+
 
 
 class InfluxDataHandler:
@@ -48,7 +45,7 @@ class InfluxDataHandler:
         end_time = time_or_time_delta(end_time_str)
 
         if field_name == "field" or field_name == "measurement" or field_name == "value":
-            field_name += "_"
+            field_name = "_" + field_name
 
         query = f'from(bucket: "{self.bucket_name}") ' \
                 f'|> range(start: {start_time}, stop:{end_time})' \
@@ -58,7 +55,7 @@ class InfluxDataHandler:
 
     def query_large_data(self, field_name, field_value, start_time, end_time="0h"):
         if field_name == "field" or field_name == "measurement" or field_name == "value":
-            field_name += "_"
+            field_name = "_" + field_name
 
         query = f'from(bucket: "{self.bucket_name}") ' \
                 f'|> range(start: {start_time}, stop:{end_time})' \
@@ -75,7 +72,7 @@ class InfluxDataHandler:
                 "value": record["_value"]
             }
 
-            yield result_dict
+            yield json.dumps(result_dict)
 
         large_stream.close()
 
@@ -84,7 +81,7 @@ class InfluxDataHandler:
         while True:  # continuously stream data
             data = self.search_data_influxdb(field_name, field_value, auto_refresh_str)
             data = self.to_dict(data)
-            yield f'data:{data}\n\n'
+            yield f'data:{data}\n\n'.encode()
             # for item in data:
             #     yield item
             gevent.sleep(auto_refresh - 1)
