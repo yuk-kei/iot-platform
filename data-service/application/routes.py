@@ -1,10 +1,13 @@
-from flask import Blueprint, request, jsonify, json
+from flask import Blueprint, request, jsonify, json, Response
+from flask_socketio import SocketIO, emit
+import reactivex as rx
 
 from .data_handler import InfluxDataHandler
 
 data_blueprint = Blueprint('data', __name__, url_prefix="/api/data")
 
 influx_handler = InfluxDataHandler()
+states = {"is_streaming": True}
 
 
 @data_blueprint.route('/test')
@@ -48,3 +51,22 @@ def query_data_frame():
     result = influx_handler.query_measurements(query)
     result = influx_handler.to_dict(result)
     return jsonify(result), 200
+
+
+@data_blueprint.route("/large_data", methods=['POST'])
+def query_large_data():
+    field_name = request.json.get('field_name')
+    field_value = request.json.get('field_value')
+    start_time = request.json.get('start_time')
+    end_time = request.json.get('end_time')
+
+    return Response(influx_handler.query_large_data(field_name, field_value, start_time, end_time),
+                    mimetype='text/event-stream')
+
+
+@data_blueprint.route('/influx_stream', methods=['POST'])
+def influx_query_loop():
+    field_name = request.json.get('field_name')
+    field_value = request.json.get('field_value')
+
+    return Response(influx_handler.stream_data(field_name,field_value, 5), mimetype='text/event-stream')
