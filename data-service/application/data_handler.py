@@ -72,7 +72,7 @@ class InfluxDataHandler:
                 "value": record["_value"]
             }
 
-            yield json.dumps(result_dict)
+            yield f'data:{result_dict}\n\n'
 
         large_stream.close()
 
@@ -81,10 +81,10 @@ class InfluxDataHandler:
         while True:  # continuously stream data
             data = self.search_data_influxdb(field_name, field_value, auto_refresh_str)
             data = self.to_dict(data)
-            yield f'data:{data}\n\n'.encode()
+            yield f'data:{data}\n\n'
             # for item in data:
             #     yield item
-            gevent.sleep(auto_refresh - 1)
+            gevent.sleep(auto_refresh - 2)
 
     def query_measurements(self, query):
 
