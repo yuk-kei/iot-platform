@@ -1,16 +1,9 @@
-import json
 import os
 import gevent
-from datetime import timedelta
-
-
-from flask import jsonify
 
 from influxdb_client.client import influxdb_client
 
-
 from dateutil.parser import parse
-
 
 
 class InfluxDataHandler:
@@ -128,58 +121,3 @@ def time_or_time_delta(curr_time_str):
 
 
 """test code"""
-
-# client = influxdb_client.InfluxDBClient(
-#     url="http://128.195.151.182:8086",
-#     token="FzxLoZXd06eIEYzueFsX1Kj21w5LwClTr4TC0w6NrWhzuBqeAVl0Sb9Nqiut5HRNZqcHgIzd0CalUl1__AynLw==",
-#     org="calit2")
-# write_api = client.write_api()
-# query_api = client.query_api()
-# bucket_name = "sensor_data"
-# data_handler = InfluxDataHandler(client, bucket_name)
-#
-#
-# data_sink = Stream()
-# data_example = pd.DataFrame({'_value': []}, columns=['_value'])
-# data_df = DataFrame(data_sink, example=data_example)
-# field_name = "id"
-# field_value = "1690575489c119600f"
-#
-# flux_query = f'''from(bucket: "{bucket_name}")
-#             |> range(start: -10d)
-#             |> filter(fn: (r) => r["_{field_name}"] == "{field_value}")
-#             '''
-# for record in data_handler.query_large_data(field_name, field_value, start_time="-10d"):
-#     print(record)
-
-# data_handler.source_data_to_socket(auto_refresh=5, query=query, sink=data_sink)
-# data_df.hvplot.line(x='time', y='values', line_width=2, color='red').opts(width=1000, height=400)
-# data_handler.source_data(auto_refresh=5, query=query)
-
-# input_time1 = "2023-08-01T18:00:00.000Z"
-# input_time2 = "2023-08-01T18:39:00.000Z"
-# output1 = time_or_time_delta(input_time1)
-# output2 = time_or_time_delta(input_time2)
-# print(output1)
-# print(output2)
-# client = influxdb_client.InfluxDBClient(
-#     url="http://128.195.151.182:8086",
-#     token="FzxLoZXd06eIEYzueFsX1Kj21w5LwClTr4TC0w6NrWhzuBqeAVl0Sb9Nqiut5HRNZqcHgIzd0CalUl1__AynLw==",
-#     org="calit2"
-# )
-# query_api = client.query_api()
-# tables = query_api.query(f'from(bucket:"sensor_data") |> range(start: {output1}, stop:{output2}) '
-#                                     '|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value") '
-#                                     '|> keep(columns: ["time", "values"])')
-# print(tables)
-# df = query_api.query_data_frame(f'from(bucket:"sensor_data") |> range(start: -21h) '
-#                                 '|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value") '
-#                                 '|> keep(columns: ["time", "values"])')
-# query = f'from(bucket:"sensor_data") |> range(start: {output1}, stop:{output2})'
-# result = query_api.query(query)
-# print(result)
-# for table in result:
-#
-#     for record in table.records:
-#
-#         print(str(record["_time"]) + " - " + record["_field"] + ": " + str(record["_value"]))

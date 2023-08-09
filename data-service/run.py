@@ -1,19 +1,11 @@
 from application import create_app
+from application.sio_routes import socketio
 
 app = create_app()
 
-
-@app.after_request
-def add_security_headers(response):
-    response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
-    response.headers['X-XSS-Protection'] = '1; mode=block'
-
-    # If you want all HTTP converted to HTTPS
-    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-
-    return response
-
-
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=app.config['DATA_WIZARD_PORT'])
+    # app.run(host='127.0.0.1', port=5000)
+    socketio.init_app(app)
+    socketio.run(app, host='127.0.0.1', port=5000)
+    # app.run(host='0.0.0.0', port=app.config['DATA_WIZARD_PORT'])
+    # socketio.run(app, host='0.0.0.0', port=app.config['DATA_WIZARD_PORT'])

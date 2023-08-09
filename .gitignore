@@ -99,5 +99,6 @@ supervisor-service/.env
 supervisor-service/*.pid
 
 ### data_handler-service
+data-service/test.py
 data-service/.env
 data-service/*.pid
