@@ -1,5 +1,8 @@
 from flask import Flask
 from flask_cors import CORS
+from gevent import monkey
+
+monkey.patch_all()
 
 
 def create_app():
@@ -22,7 +25,9 @@ def create_app():
     from .routes import data_blueprint
     app.register_blueprint(data_blueprint)
 
-    from .sio_routes import kafka_blueprint
+    from .sio_routes import kafka_blueprint, socketio
+
     app.register_blueprint(kafka_blueprint)
+    socketio.init_app(app)
 
     return app

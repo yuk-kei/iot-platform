@@ -9,10 +9,15 @@ logger = logging.getLogger(__name__)
 
 kafka_blueprint = Blueprint('kafka', __name__, url_prefix="/api/kafka")
 
-socketio = SocketIO(async_mode='gevent', cors_allowed_origins='*')
+socketio = SocketIO(async='gevent',cors_allowed_origins='*')
 
 kafka_service = None
 kafka_background = None
+
+
+@kafka_blueprint.route('/test/')
+def test_connection():
+    return '<h1>Connection Success</h1>'
 
 
 @kafka_blueprint.route('/start_stream/')
@@ -21,16 +26,14 @@ def start_stream_endpoint():
     global kafka_background
     global socketio
     if kafka_service is None:
-        kafka_service = KafkaService({
-            'bootstrap.servers': '128.195.151.182:9392',
-            'group.id': 'data-dispatcher',
-            'auto.offset.reset': 'latest'
-        })
+        kafka_service = KafkaService()
         kafka_service.subscribe(['sensor_data'])
 
     if kafka_background is None:
         kafka_background = KafkaSocketIO(socketio, kafka_service, 'data_stream', '/kafka')
+        print("starting a thread")
         kafka_background.start()
+        print("not a background thread")
         return {'status': 'Stream started'}
     else:
         return {'status': 'Stream already running'}

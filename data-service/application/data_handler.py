@@ -69,7 +69,7 @@ class InfluxDataHandler:
 
         large_stream.close()
 
-    def stream_data(self, field_name, field_value, auto_refresh):
+    def stream_data(self, field_name, field_value, auto_refresh=5):
         auto_refresh_str = f"-{auto_refresh}s"
         while True:  # continuously stream data
             data = self.search_data_influxdb(field_name, field_value, auto_refresh_str)
