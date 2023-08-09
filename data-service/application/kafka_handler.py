@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 import threading
 from time import sleep
@@ -26,6 +25,20 @@ class KafkaService:
 
     def consume(self):
         return self.consumer.poll(timeout=1.0)
+
+    def receive(self):
+        msg = self.consume()
+        if msg is None:
+            print("No message received")
+            return None
+        if msg.error():
+            if msg.error().code() == KafkaError.PARTITION_EOF:
+                print('End of partition reached {0}/{1}')
+                return None
+            else:
+                raise KafkaException(msg.error())
+        else:
+            return msg.value().decode('utf-8')
 
     def gen_messages(self):
         while True:
@@ -72,7 +85,8 @@ class KafkaSocketIO(threading.Thread):
                     continue
                 if msg.error():
                     if msg.error().code() == KafkaError.PARTITION_EOF:
-                        logging.info('End of partition reached {0}/{1}')
+                        print('End of partition reached {0}/{1}')
+                        # logging.info('End of partition reached {0}/{1}')
                     else:
                         raise KafkaException(msg.error())
                 else:
@@ -81,7 +95,8 @@ class KafkaSocketIO(threading.Thread):
                     self.socketio.emit(self.event, msg_json, namespace=self.name_space)
 
         except Exception as e:
-            logging.error(f"Error: {e}")
+            print(f"Error: {e}")
+            # logging.error(f"Error: {e}")
 
     def pause(self):
         self._pause_event.clear()
@@ -96,4 +111,4 @@ class KafkaSocketIO(threading.Thread):
         sleep(2)
         self.state = 'stop'
         self.kafka_service.close()
-        logging.info("Kafka socket stopped")
+        print("Kafka socket stopped")

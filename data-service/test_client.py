@@ -7,6 +7,7 @@ sio = socketio.Client()
 
 sensor_id = "1690575489c119600f"  # replace with your sensor ID
 
+
 @sio.on('connect', namespace='/kafka')
 def on_connect():
     print("I'm connected to the namespace!")
@@ -16,13 +17,14 @@ def on_connect():
 def on_data_stream(data):
     print("New data received: ", data)
 
+
 @sio.on('disconnect')
 def on_disconnect():
     print("I'm disconnected!")
 
 
 sio.connect('http://127.0.0.1:5000', namespaces=['/kafka'])
-
+# sio.connect('http://128.195.151.182:9001', namespaces=['/kafka'])
 #     # sio.emit('join', {'sensor_id': sensor_id})
 #
 

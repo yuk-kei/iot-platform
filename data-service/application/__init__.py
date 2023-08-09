@@ -28,6 +28,7 @@ def create_app():
     from .sio_routes import kafka_blueprint, socketio
 
     app.register_blueprint(kafka_blueprint)
+
     socketio.init_app(app)
 
     return app

@@ -3,13 +3,12 @@ import logging
 from flask_socketio import SocketIO, Namespace, emit
 from flask import request, Blueprint, Flask
 
-from .kafka_handler import KafkaService, KafkaSocketIO
+from kafka_handler import KafkaService, KafkaSocketIO
 
-logger = logging.getLogger(__name__)
 
 kafka_blueprint = Blueprint('kafka', __name__, url_prefix="/api/kafka")
 
-socketio = SocketIO(async='gevent',cors_allowed_origins='*')
+socketio = SocketIO(cors_allowed_origins='*', async_mode=None, logger=True, engineio_logger=True)
 
 kafka_service = None
 kafka_background = None
@@ -26,7 +25,11 @@ def start_stream_endpoint():
     global kafka_background
     global socketio
     if kafka_service is None:
-        kafka_service = KafkaService()
+        kafka_service = KafkaService({
+            'bootstrap.servers': '128.195.151.182:9392',
+            'group.id': 'data-dispatcher',
+            'auto.offset.reset': 'latest'
+        })
         kafka_service.subscribe(['sensor_data'])
 
     if kafka_background is None:
@@ -51,7 +54,7 @@ def stop_stream():
             kafka_service = None
             return {'status': 'Stream stopped'}
         except Exception as e:
-            logger.error(f"Error stopping stream: {str(e)}")
+            print(f"Error stopping stream: {str(e)}")
             return {'status': 'Error stopping stream', 'error': str(e)}
 
     else:
@@ -90,8 +93,8 @@ class KafkaStreamNamespace(Namespace):
 
 socketio.on_namespace(KafkaStreamNamespace('/kafka'))
 
-# if __name__ == '__main__':
-#     app = Flask(__name__)
-#     app.register_blueprint(kafka_blueprint)
-#     socketio.init_app(app)
-#     socketio.run(app, port=5000)
+if __name__ == '__main__':
+    app = Flask(__name__)
+    app.register_blueprint(kafka_blueprint)
+    socketio.init_app(app)
+    socketio.run(app, port=5000)
