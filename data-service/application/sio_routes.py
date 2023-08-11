@@ -3,12 +3,12 @@ import logging
 from flask_socketio import SocketIO, Namespace, emit
 from flask import request, Blueprint, Flask
 
-from kafka_handler import KafkaService, KafkaSocketIO
+from .kafka_handler import KafkaService, KafkaSocketIO
 
 
 kafka_blueprint = Blueprint('kafka', __name__, url_prefix="/api/kafka")
 
-socketio = SocketIO(cors_allowed_origins='*', async_mode=None, logger=True, engineio_logger=True)
+socketio = SocketIO(cors_allowed_origins='*', logger=True, engineio_logger=True)
 
 kafka_service = None
 kafka_background = None
@@ -93,8 +93,8 @@ class KafkaStreamNamespace(Namespace):
 
 socketio.on_namespace(KafkaStreamNamespace('/kafka'))
 
-if __name__ == '__main__':
-    app = Flask(__name__)
-    app.register_blueprint(kafka_blueprint)
-    socketio.init_app(app)
-    socketio.run(app, port=5000)
+# if __name__ == '__main__':
+#     app = Flask(__name__)
+#     app.register_blueprint(kafka_blueprint)
+#     socketio.init_app(app)
+#     socketio.run(app, port=5000)

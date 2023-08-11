@@ -2,7 +2,7 @@ from threading import Lock
 from flask_socketio import SocketIO, Namespace, emit
 from flask import request, Blueprint, Flask
 
-from kafka_handler import KafkaService, KafkaSocketIO
+from .kafka_handler import KafkaService, KafkaSocketIO
 
 kafka_blueprint = Blueprint('kafka', __name__, url_prefix="/api/kafka")
 
@@ -24,20 +24,22 @@ def background_thread():
         msg = kafka_service.receive()
         if msg is not None:
             print(msg)
-            socketio.emit('data_stream', msg, namespace='/kafka')
+            socketio.emit('data_stream', msg)
 
 
 @socketio.event
 def connect():
-    # global kafka_thread
-    # with thread_lock:
-    #     if kafka_thread is None:
-    #         kafka_thread = socketio.start_background_task(background_thread)
-    emit('connect', 'Connected', namespace='/kafka')
+    global kafka_thread
+    with thread_lock:
+        if kafka_thread is None:
+            kafka_thread = socketio.start_background_task(background_thread)
+    emit('connect', 'Connected')
+
 
 @socketio.event
 def disconnect():
     print('Client disconnected', request.sid, )
+
 
 @kafka_blueprint.route('/test/')
 def test_connection():
@@ -64,8 +66,8 @@ def resume_stream():
     pass
 
 
-if __name__ == '__main__':
-    app = Flask(__name__)
-    app.register_blueprint(kafka_blueprint)
-    socketio.init_app(app)
-    socketio.run(app, port=5000)
+# if __name__ == '__main__':
+#     app = Flask(__name__)
+#     app.register_blueprint(kafka_blueprint)
+#     socketio.init_app(app)
+#     socketio.run(app, port=5000)

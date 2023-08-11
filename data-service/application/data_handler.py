@@ -74,10 +74,11 @@ class InfluxDataHandler:
         while True:  # continuously stream data
             data = self.search_data_influxdb(field_name, field_value, auto_refresh_str)
             data = self.to_dict(data)
-            yield f'data:{data}\n\n'
+
             # for item in data:
             #     yield item
-            gevent.sleep(auto_refresh - 2)
+            gevent.sleep(auto_refresh/2)
+            yield f'data:{data}\n\n'
 
     def query_measurements(self, query):
 

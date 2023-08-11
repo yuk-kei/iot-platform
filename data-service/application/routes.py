@@ -1,7 +1,8 @@
-from flask import Blueprint, request, jsonify, json, Response
+from flask import Blueprint, request, jsonify, json, Response, g
 from flask_socketio import SocketIO, emit
 
 from .data_handler import InfluxDataHandler
+from .kafka_handler import KafkaService
 
 data_blueprint = Blueprint('data', __name__, url_prefix="/api/data")
 
@@ -68,4 +69,30 @@ def influx_query_loop():
     field_name = request.json.get('field_name')
     field_value = request.json.get('field_value')
 
-    return Response(influx_handler.stream_data(field_name, field_value, 10), mimetype='text/event-stream')
+    return Response(influx_handler.stream_data(field_name, field_value, 8), mimetype='text/event-stream')
+
+
+@data_blueprint.route('/kafka_stream', methods=['GET'])
+def kafka_query_loop():
+    kafka_service = KafkaService()
+    kafka_service.subscribe(['sensor_data'])
+
+    def kafka_stream():
+        try:
+            for message in kafka_service.gen_messages():
+
+                yield message
+        except GeneratorExit:  # Raised when client disconnects
+            kafka_service.close()
+
+    response = Response(kafka_stream(), content_type='text/event-stream')
+    response.headers['Cache-Control'] = 'no-cache'
+    response.headers['Connection'] = 'keep-alive'
+
+    return response
+
+# @data_blueprint.teardown_request
+# def close_kafka_service(exception=None):
+#     kafka_service = getattr(g, 'kafka_service', None)
+#     if kafka_service:
+#         kafka_service.close()

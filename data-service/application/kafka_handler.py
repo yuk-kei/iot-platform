@@ -28,6 +28,7 @@ class KafkaService:
 
     def receive(self):
         msg = self.consume()
+        sleep(1)
         if msg is None:
             print("No message received")
             return None
@@ -43,7 +44,7 @@ class KafkaService:
     def gen_messages(self):
         while True:
             msg = self.consume()
-
+            sleep(1)
             if msg is None:
                 continue
             if msg.error():
@@ -52,7 +53,7 @@ class KafkaService:
                 else:
                     raise KafkaException(msg.error())
             else:
-                yield msg.value().decode('utf-8')
+                yield f'data:{msg.value()}\n\n'
 
     def close(self):
         try:
@@ -80,6 +81,7 @@ class KafkaSocketIO(threading.Thread):
             self.state = 'running'
             while not self._stop_event.is_set():
                 msg = self.kafka_service.consume()
+                sleep(1)
                 self._pause_event.wait()  # block until told to resume
                 if msg is None:
                     continue
