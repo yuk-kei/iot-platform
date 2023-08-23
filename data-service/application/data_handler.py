@@ -59,7 +59,7 @@ class InfluxDataHandler:
         for record in large_stream:
             local_time = record["_time"].astimezone()
             result_dict = {
-                "time": local_time.strftime("%Y-%m-%d %H:%M:%S"),
+                "time": local_time.strftime("%Y-%m-%d %H:%M:%S.%f"),
                 # "measurement": records["_measurement"],
                 "field": record["_field"],
                 "value": record["_value"]
@@ -74,11 +74,10 @@ class InfluxDataHandler:
         while True:  # continuously stream data
             data = self.search_data_influxdb(field_name, field_value, auto_refresh_str)
             data = self.to_dict(data)
-
+            gevent.sleep(auto_refresh / 2)
+            yield f'data:{data}\n\n'
             # for item in data:
             #     yield item
-            gevent.sleep(auto_refresh/2)
-            yield f'data:{data}\n\n'
 
     def query_measurements(self, query):
 
@@ -91,7 +90,7 @@ class InfluxDataHandler:
             for records in table.records:
                 local_time = records["_time"].astimezone()
                 list_of_dict.append({
-                    "time": local_time.strftime("%Y-%m-%d %H:%M:%S"),
+                    "time": local_time.strftime("%Y-%m-%d %H:%M:%S.%f"),
                     # "measurement": records["_measurement"],
                     "field": records["_field"],
                     "value": records["_value"]

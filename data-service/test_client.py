@@ -13,17 +13,12 @@ def on_connect():
     print("I'm connected to the namespace!")
 
 
-@sio.on('data_stream', namespace='/kafka')
-def on_data_stream(data):
-    print("New data received: ", data)
-
-
-@sio.on('disconnect')
+@sio.on('disconnect', namespace='/kafka')
 def on_disconnect():
     print("I'm disconnected!")
 
 
-sio.connect('http://127.0.0.1:5000', namespaces=['/kafka'])
+sio.connect('http://127.0.0.1:5000')
 # sio.connect('http://128.195.151.182:9001', namespaces=['/kafka'])
 #     # sio.emit('join', {'sensor_id': sensor_id})
 #

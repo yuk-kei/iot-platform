@@ -1,5 +1,5 @@
-from flask import Blueprint, request, jsonify, json, Response, g
-from flask_socketio import SocketIO, emit
+from flask import Blueprint, request, jsonify, Response
+
 
 from .data_handler import InfluxDataHandler
 from .kafka_handler import KafkaService
