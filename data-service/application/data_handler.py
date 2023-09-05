@@ -32,7 +32,7 @@ class InfluxDataHandler:
 
         return query
 
-    def search_data_influxdb(self, field_name, field_value, start_time_str, end_time_str="0h"):
+    def search_data_influxdb(self, field_name, field_value, start_time_str, end_time_str="0h", frequency=None):
         start_time = time_or_time_delta(start_time_str)
 
         end_time = time_or_time_delta(end_time_str)
@@ -43,6 +43,10 @@ class InfluxDataHandler:
         query = f'from(bucket: "{self.bucket_name}") ' \
                 f'|> range(start: {start_time}, stop:{end_time})' \
                 f'|> filter(fn: (r) => r["{field_name}"] == "{field_value}")'
+        if frequency is not None:
+            query += f'|> aggregateWindow(every: {frequency}, fn: mean, createEmpty: false)'
+            query += f'|> yield(name: "mean")'  # Not sure if this is needed
+            query += f'|> map(fn: (r) => ({{r with _time: r._time + {frequency}}}))'
         result = self.query_api.query(query)
         return result
 
