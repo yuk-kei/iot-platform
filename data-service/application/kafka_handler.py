@@ -1,6 +1,7 @@
 import json
 import os
 import threading
+import time
 from time import sleep
 
 from confluent_kafka import Consumer, KafkaError, KafkaException
@@ -8,11 +9,13 @@ from confluent_kafka import Consumer, KafkaError, KafkaException
 
 class KafkaService:
     def __init__(self, config=None):
+
         if config is None:
             self.config = {
                 'bootstrap.servers': os.environ.get('KAFKA_BOOTSTRAP_SERVERS'),
                 'group.id': os.environ.get('KAFKA_GROUP_ID'),
-                'auto.offset.reset': os.environ.get('KAFKA_AUTO_OFFSET_RESET')
+                'auto.offset.reset': os.environ.get('KAFKA_AUTO_OFFSET_RESET'),
+                'enable.auto.commit': False
             }
 
         else:
@@ -21,14 +24,15 @@ class KafkaService:
         self.consumer = Consumer(self.config)
 
     def subscribe(self, topics):
-        self.consumer.subscribe(topics)
+        consumer = self.consumer
+        consumer.subscribe(topics, on_assign=on_assign)
 
     def consume(self):
         return self.consumer.poll(timeout=1.0)
 
     def receive(self):
         msg = self.consume()
-        sleep(1)
+        sleep(0)
         if msg is None:
             print("No message received")
             return None
@@ -41,10 +45,11 @@ class KafkaService:
         else:
             return msg.value().decode('utf-8')
 
-    def gen_messages(self):
+    def gen_messages(self, rate=0):
         while True:
+
             msg = self.consume()
-            sleep(1)
+
             if msg is None:
                 continue
             if msg.error():
@@ -53,7 +58,8 @@ class KafkaService:
                 else:
                     raise KafkaException(msg.error())
             else:
-                yield f'data:{msg.value()}\n\n'
+                yield msg
+                # yield f'data:{msg.value()}\n\n'
 
     def close(self):
         try:
@@ -81,7 +87,7 @@ class KafkaSocketIO(threading.Thread):
             self.state = 'running'
             while not self._stop_event.is_set():
                 msg = self.kafka_service.consume()
-                sleep(1)
+                sleep(0)
                 self._pause_event.wait()  # block until told to resume
                 if msg is None:
                     continue
@@ -93,7 +99,7 @@ class KafkaSocketIO(threading.Thread):
                         raise KafkaException(msg.error())
                 else:
                     msg_json = json.loads(msg.value().decode('utf-8'))
-                    print(msg_json)
+
                     self.socketio.emit(self.event, msg_json, namespace=self.name_space)
 
         except Exception as e:
@@ -114,3 +120,9 @@ class KafkaSocketIO(threading.Thread):
         self.state = 'stop'
         self.kafka_service.close()
         print("Kafka socket stopped")
+
+
+def on_assign(consumer, partitions):
+    for p in partitions:
+        p.offset = -1
+    consumer.assign(partitions)

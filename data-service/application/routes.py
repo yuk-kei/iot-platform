@@ -1,5 +1,6 @@
-from flask import Blueprint, request, jsonify, Response
+import json
 
+from flask import Blueprint, request, jsonify, Response
 
 from .data_handler import InfluxDataHandler
 from .kafka_handler import KafkaService
@@ -72,19 +73,27 @@ def influx_query_loop():
     field_name = request.json.get('field_name')
     field_value = request.json.get('field_value')
 
-    return Response(influx_handler.stream_data(field_name, field_value, 8), mimetype='text/event-stream')
+    return Response(influx_handler.stream_data(field_name, field_value, auto_refresh=5, rate=1),
+                    mimetype='text/event-stream')
 
 
-@data_blueprint.route('/kafka_stream', methods=['GET'])
-def kafka_query_loop():
+@data_blueprint.route('/kafka_stream/<device_identifier>', methods=['GET'])
+def kafka_query_loop(device_identifier):
     kafka_service = KafkaService()
     kafka_service.subscribe(['sensor_data'])
 
     def kafka_stream():
         try:
             for message in kafka_service.gen_messages():
+                msg_value = json.loads(message.value().decode('utf-8'))
+                device_name = msg_value.get("device_name", "")
 
-                yield message
+                device_id = msg_value.get("id", "")
+                if device_name == device_identifier or device_id == device_identifier:
+                    
+                    yield f"data: {msg_value}\n\n"
+
+
         except GeneratorExit:  # Raised when client disconnects
             kafka_service.close()
 

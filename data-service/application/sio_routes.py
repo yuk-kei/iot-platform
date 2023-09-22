@@ -8,7 +8,8 @@ from .kafka_handler import KafkaService, KafkaSocketIO
 
 kafka_blueprint = Blueprint('kafka', __name__, url_prefix="/api/kafka")
 
-socketio = SocketIO(cors_allowed_origins='*', logger=True, engineio_logger=True)
+# socketio = SocketIO(cors_allowed_origins='*', logger=True, engineio_logger=True)
+socketio = SocketIO(cors_allowed_origins='*')
 
 kafka_service = None
 kafka_background = None
@@ -36,7 +37,7 @@ def start_stream_endpoint():
         kafka_background = KafkaSocketIO(socketio, kafka_service, 'data_stream', '/kafka')
         print("starting a thread")
         kafka_background.start()
-        print("not a background thread")
+
         return {'status': 'Stream started'}
     else:
         return {'status': 'Stream already running'}

@@ -44,9 +44,10 @@ class InfluxDataHandler:
                 f'|> range(start: {start_time}, stop:{end_time})' \
                 f'|> filter(fn: (r) => r["{field_name}"] == "{field_value}")'
         if frequency is not None:
+            frequency = time_or_time_delta(frequency)
             query += f'|> aggregateWindow(every: {frequency}, fn: mean, createEmpty: false)'
             query += f'|> yield(name: "mean")'  # Not sure if this is needed
-            query += f'|> map(fn: (r) => ({{r with _time: r._time + {frequency}}}))'
+            # query += f'|> map(fn: (r) => ({{r with _time: r._time + {frequency}}}))'
         result = self.query_api.query(query)
         return result
 
@@ -73,12 +74,13 @@ class InfluxDataHandler:
 
         large_stream.close()
 
-    def stream_data(self, field_name, field_value, auto_refresh=5):
+    def stream_data(self, field_name, field_value, rate=1, auto_refresh=2):
         auto_refresh_str = f"-{auto_refresh}s"
         while True:  # continuously stream data
             data = self.search_data_influxdb(field_name, field_value, auto_refresh_str)
             data = self.to_dict(data)
-            gevent.sleep(auto_refresh / 2)
+            gevent.sleep(rate)
+            print(data)
             yield f'data:{data}\n\n'
             # for item in data:
             #     yield item
