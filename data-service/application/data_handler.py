@@ -5,10 +5,33 @@ from influxdb_client.client import influxdb_client
 
 from dateutil.parser import parse
 
+"""
+This module provides a class to handle data from InfluxDB.
+
+Todo:
+    * Implement the features of returning a result as csv file 
+    * Implement the features of returning data as pandas dataframe
+    * Implement other kinds of queries 
+
+"""
+
 
 class InfluxDataHandler:
-    def __init__(self, client=None, bucket=None):
+    """
+    A class to handle data from InfluxDB.
+    """
 
+    def __init__(self, client=None, bucket=None):
+        """The __init__ function is called when the class is instantiated.
+        It sets up the InfluxDB client and write/query APIs, as well as setting
+        the bucket name to be used for writing data.
+
+        :param self: Represent the instance of the class
+        :param client: Connect to the influxdb server
+        :param bucket: Specify the name of the bucket to retrieve data from
+        :return: Self, which is the instance of the class
+        :doc-author: Yukkei
+        """
         self.client = influxdb_client.InfluxDBClient(
             url=os.environ.get('INFLUX_URL'),
             token=os.environ.get('INFLUX_TOKEN'),
@@ -20,6 +43,18 @@ class InfluxDataHandler:
         self.bucket_name = os.environ.get('INFLUX_BUCKET') if bucket is None else bucket
 
     def query_builder(self, query_dicts_list: list, start_time, end_time="0h", bucket_name=None):
+
+        """ The query_builder function takes in a list of dictionaries, each containing the field name and value to be filtered on.
+        It then builds a query string that can be used with the InfluxDBClient's query function.
+
+        :param self: Make the function a method of the class
+        :param query_dicts_list: list: Specify the fields and values that you want to filter by
+        :param start_time: Specify the start time of the query
+        :param end_time: Specify the end time of the query
+        :param bucket_name: Specify the bucket to query
+        :return: The query result
+        :doc-author: Yukkei
+        """
         if bucket_name is None:
             bucket_name = self.bucket_name
 
@@ -33,6 +68,17 @@ class InfluxDataHandler:
         return query
 
     def search_data_influxdb(self, field_name, field_value, start_time_str, end_time_str="0h", frequency=None):
+        """The search_data_influxdb function searches the InfluxDB database for a specific field value.
+
+        :param self: Bind the method to an object
+        :param field_name: Specify the field that is being searched for
+        :param field_value: Filter the data
+        :param start_time_str: Specify the start time of the query
+        :param end_time_str: Specify the end time of the query
+        :param frequency: Aggregate the data
+        :return: A list of dictionaries
+        :doc-author: Yukkei
+        """
         start_time = time_or_time_delta(start_time_str)
 
         end_time = time_or_time_delta(end_time_str)
@@ -52,6 +98,21 @@ class InfluxDataHandler:
         return result
 
     def query_large_data(self, field_name, field_value, start_time, end_time="0h"):
+
+        """ The query_large_data function is used to query large data sets from the InfluxDB database.
+        The function takes in four arguments: field_name, field_value, start_time and end_time.
+        The first two arguments are used to filter the results of the query by a specific value
+        for a given field name (e.g., field_name == "field" or field_name == "measurement";).
+        The last two arguments are used to specify a time range for which we want our data returned from (e.g., '-2h' or '2020-07-01T00:00:00Z').
+
+        :param self: Represent the instance of the class
+        :param field_name: Specify which field in the database we want to query
+        :param field_value: Filter the data
+        :param start_time: Specify the start time for the query
+        :param end_time: Specify the end time of the query
+        :return: A generator to stream data
+        :doc-author: Yukkei
+        """
         if field_name == "field" or field_name == "measurement" or field_name == "value":
             field_name = "_" + field_name
 
@@ -74,30 +135,57 @@ class InfluxDataHandler:
 
         large_stream.close()
 
-    def stream_data(self, field_name, field_value, rate=1, auto_refresh=2):
-        auto_refresh_str = f"-{auto_refresh}s"
-        while True:  # continuously stream data
-            data = self.search_data_influxdb(field_name, field_value, auto_refresh_str)
+    def stream_data(self, field_name, field_value, rate=3, time_interval=3):
+
+        """
+        The stream_data function is a generator that continuously streams data from the InfluxDB database.
+            The function takes in three arguments: field_name, field_value, and rate.
+            The field name and value are used to query the database for specific data points.
+            Rate is how often you want to stream new data from the database (in seconds).
+
+        :param self: Represent the instance of the class
+        :param field_name: Specify the field that we want to search for
+        :param field_value: Specify the value of the field_name parameter
+        :param rate: Control the speed of the stream
+        :param time_interval: Set the time interval for which data is fetched from influxdb
+        :return: A generator to stream data
+        :doc-author: Yukkei
+        """
+        time_interval = f"-{time_interval}s"
+        while True:
+            # continuously stream data
+            data = self.search_data_influxdb(field_name, field_value, time_interval)
             data = self.to_dict(data)
             gevent.sleep(rate)
-            print(data)
+
             yield f'data:{data}\n\n'
-            # for item in data:
-            #     yield item
 
     def query_measurements(self, query):
+        """
+        Use to execute single query to influxdb, it is not recommended to direct use this function.
+        :param query: Pass the query to the function
+        :return: The result of the query
+        :doc-author: Yukkei
+        """
 
         return self.query_api.query(query)
 
     def to_dict(self, result):
+        """
+        The to_dict function takes the result of a query and converts it into a list of dictionaries.
+        Each dictionary contains the time, measurement, field and value for each record in the result.
 
+        :param self: Represent the instance of the class
+        :param result: Pass the result of the query to the function
+        :return: A list of dictionaries
+        :doc-author: Yukkei
+        """
         list_of_dict = []
         for table in result:
             for records in table.records:
                 local_time = records["_time"].astimezone()
                 list_of_dict.append({
                     "time": local_time.strftime("%Y-%m-%d %H:%M:%S.%f"),
-                    # "measurement": records["_measurement"],
                     "field": records["_field"],
                     "value": records["_value"]
                 })
@@ -105,6 +193,15 @@ class InfluxDataHandler:
 
 
 def time_or_time_delta(curr_time_str):
+    """
+    The time_or_time_delta function takes in a string and returns either the time delta or the time.
+        If it is a timedelta, then it will return that value.
+        If it is not, then we assume that this is an absolute timestamp and convert to seconds since epoch.
+
+    :param curr_time_str: Pass in the current time string
+    :return: A datetime object
+    :doc-author: Yukkei
+    """
     if len(curr_time_str) == 1:
         return "Invalid time format"
     if curr_time_str[-1] == 'd':
@@ -124,6 +221,3 @@ def time_or_time_delta(curr_time_str):
 
     except ValueError:
         print(f"Error: unable to parse time string {curr_time_str}")
-
-
-"""test code"""

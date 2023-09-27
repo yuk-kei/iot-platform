@@ -1,35 +1,58 @@
-import logging
+import os
 
-from flask_socketio import SocketIO, Namespace, emit
-from flask import request, Blueprint, Flask
+from flask_socketio import SocketIO, Namespace
+from flask import request, Blueprint
 
 from .kafka_handler import KafkaService, KafkaSocketIO
-
+"""
+    This file is used to create the Kafka socketio endpoints
+    It creates a KafkaService object and a KafkaSocketIO object
+    The KafkaSocketIO object is a thread that handles the connection to Kafka
+    and emits events to the client
+    The KafkaService object is used to subscribe to topics and receive data from Kafka
+    
+    Todo:
+        * Emit the arrived data to the seperate rooms (for each sensor)
+        * Use a message queue to support multiple processes (for scaling) 
+"""
 
 kafka_blueprint = Blueprint('kafka', __name__, url_prefix="/api/kafka")
-
-# socketio = SocketIO(cors_allowed_origins='*', logger=True, engineio_logger=True)
 socketio = SocketIO(cors_allowed_origins='*')
-
 kafka_service = None
 kafka_background = None
 
 
 @kafka_blueprint.route('/test/')
 def test_connection():
+    """
+    test the connection
+
+    :return: the connection status
+    :doc-author: Yukkei
+    """
+
     return '<h1>Connection Success</h1>'
 
 
 @kafka_blueprint.route('/start_stream/')
 def start_stream_endpoint():
+    """
+    The start_stream_endpoint function starts a background thread that listens to the Kafka topic 'sensor_data' and emits
+    the data it receives from this topic to the client via SocketIO.
+    The function returns a status message indicating whether the stream was started.
+
+    :return: A dictionary with a key status and the value stream started
+    :doc-author: Yukkei
+    """
     global kafka_service
     global kafka_background
     global socketio
+
     if kafka_service is None:
         kafka_service = KafkaService({
-            'bootstrap.servers': '128.195.151.182:9392',
-            'group.id': 'data-dispatcher',
-            'auto.offset.reset': 'latest'
+            'bootstrap.servers': os.environ.get('KAFKA_BOOTSTRAP_SERVERS'),
+            'group.id': os.environ.get('KAFKA_SIO_GROUP_ID'),
+            'auto.offset.reset': os.environ.get('KAFKA_AUTO_OFFSET_RESET')
         })
         kafka_service.subscribe(['sensor_data'])
 
@@ -45,8 +68,18 @@ def start_stream_endpoint():
 
 @kafka_blueprint.route('/stop_stream/')
 def stop_stream():
+    """
+    The stop_stream function stops the Kafka stream.
+        Returns:
+            A dictionary with a status message and an error message if applicable.
+
+
+    :return: A dictionary with a status key
+    :doc-author: Yukkei
+    """
     global kafka_background
     global kafka_service
+
     if kafka_background is not None:
         try:
             kafka_background.stop()
@@ -64,8 +97,16 @@ def stop_stream():
 
 @kafka_blueprint.route('/pause_stream/')
 def pause_stream():
+    """
+    The pause_stream function pauses the stream of data from Kafka.
+        :return: A JSON object with a status message indicating whether the stream was paused.
+
+
+    :return: A dictionary with a status key
+    :doc-author: Trelent
+    """
     global kafka_background
-    # print(kafka_background.states)
+
     if kafka_background is not None and kafka_background.state == 'running':
         kafka_background.pause()
         return {'status': 'Stream paused'}
@@ -75,6 +116,14 @@ def pause_stream():
 
 @kafka_blueprint.route('/resume_stream/')
 def resume_stream():
+    """
+    The resume_stream function resumes the stream if it is paused.
+        Returns:
+            A dictionary with a status message indicating whether the stream was resumed.
+
+    :return: A dictionary with the status of the stream
+    :doc-author: Trelent
+    """
     global kafka_background
 
     if kafka_background is not None and kafka_background.state == 'pause':
@@ -85,6 +134,10 @@ def resume_stream():
 
 
 class KafkaStreamNamespace(Namespace):
+    """
+    This class is used to handle the socketio connection and events
+    More features can be added here
+    """
     def on_connect(self):
         print('Client connected', request.sid)
 
@@ -93,9 +146,3 @@ class KafkaStreamNamespace(Namespace):
 
 
 socketio.on_namespace(KafkaStreamNamespace('/kafka'))
-
-# if __name__ == '__main__':
-#     app = Flask(__name__)
-#     app.register_blueprint(kafka_blueprint)
-#     socketio.init_app(app)
-#     socketio.run(app, port=5000)

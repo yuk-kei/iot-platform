@@ -27,20 +27,6 @@
 # Gradle
 .idea/**/gradle.xml
 .idea/**/libraries
-
-# Gradle and Maven with auto-import
-# When using Gradle or Maven with auto-import, you should exclude module files,
-# since they will be recreated, and may cause churn.  Uncomment if using
-# auto-import.
-# .idea/artifacts
-# .idea/compiler.xml
-# .idea/jarRepositories.xml
-# .idea/modules.xml
-# .idea/*.iml
-# .idea/modules
-# *.iml
-# *.ipr
-
 # CMake
 cmake-build-*/
 
@@ -93,12 +79,15 @@ __pycache__
 ### device-service
 device-service/.env
 device-service/*.pid
+device-service/*.out
 
 ### control-service
 supervisor-service/.env
 supervisor-service/*.pid
+supervisor-service/*.out
 
 ### data_handler-service
-data-service/test.py
+data-service/application/test
 data-service/.env
 data-service/*.pid
+data-service/*.out
