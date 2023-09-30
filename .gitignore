@@ -87,7 +87,7 @@ supervisor-service/*.pid
 supervisor-service/*.out
 
 ### data_handler-service
-data-service/application/test
-data-service/.env
+data_dispatcher-service/application/test
+data_dispatcher-service/.env
 data-service/*.pid
 data-service/*.out
