@@ -10,7 +10,9 @@ The IoT Platform Backend Services comprise a set of microservices designed to ca
 
   ![](screenshots\iot-workflow.png)
 
-- For edge-device part, see [edge-device]() repository.
+- For edge-device part, see [edge-device](https://github.com/yuk-kei/Edge-Device) repository.
+
+- For storing the clips of video streaming , see [video-segmenter](https://github.com/yuk-kei/live-stream-segmenter) repository.
 
 ## Services Overview
 
