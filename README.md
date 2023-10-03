@@ -1,6 +1,16 @@
 # IoT Platform Backend Services
 
+## Introduction
+
 The IoT Platform Backend Services comprise a set of microservices designed to cater to Internet of Things (IoT) devices. These services facilitate data processing, device management, and supervisory control, all unified under a single reverse proxy for scalability and performance.
+
+## IoT Platform Architecture
+
+- Infrastructure
+
+  ![](screenshots\iot-workflow.png)
+
+- For edge-device part, see [edge-device]() repository.
 
 ## Services Overview
 
