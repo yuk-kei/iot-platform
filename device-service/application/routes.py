@@ -2,6 +2,7 @@ import time, uuid
 
 from .models import Device, db
 from flask import Blueprint, request, jsonify
+
 """
 Routes Module
 
@@ -56,6 +57,13 @@ def check_register():
         status = request.json.get('status')
         ip_address = request.json.get('ip_address')
         port = request.json.get('port')
+
+        # Check if a device with the same name already exists
+        device = Device.query.filter_by(name=name).first()
+
+        if device:
+            return jsonify({'message': 'Device with this name is already registered.'}), 409  # Conflict status code
+
         if not device_id:
             device_id = next_short_id()
             new_device = Device(id=device_id, name=name, type=type, category=category, location=location, status=status,
@@ -66,9 +74,14 @@ def check_register():
         else:
             device = Device.query.get(device_id)
             if device:
-                return jsonify({'message': 'Device already registered.'}), 200
-            else:
-                return jsonify({'message': 'Device ID not found in database.'}), 404
+                return jsonify({'message': 'Device already registered.'}), 409
+            if not device:
+                new_device = Device(id=device_id, name=name, type=type, category=category, location=location,
+                                    status=status, ip_address=ip_address, port=port)
+                db.session.add(new_device)
+                db.session.commit()
+                return jsonify({'Successfully registered device': device_id}), 201
+
     elif request.method == 'GET':
         # Logic for handling GET requests
         devices = Device.query.all()
@@ -98,7 +111,7 @@ def delete_device():
         return jsonify({'message': 'Device ID not found in database.'}), 404
 
 
-@devices_blueprint.route("/update",  methods=['POST', 'GET'])
+@devices_blueprint.route("/update", methods=['POST', 'GET', 'PUT'])
 def update_device():
     """
     Update a device's details based on the device_id.
@@ -108,19 +121,50 @@ def update_device():
     :return: A JSON response indicating the status of the update operation.
     """
     device_id = request.json.get('device_id')
+
+    if not device_id:
+        return jsonify({'message': 'Device ID not provided.'}), 400
+    print(device_id)
     device = Device.query.get(device_id)
-    if device:
-        device.name = request.json.get('name')
-        device.type = request.json.get('type')
-        device.location = request.json.get('location')
-        device.category = request.json.get('category')
-        device.status = request.json.get('status')
-        device.ip_address = request.json.get('ip_address')
-        device.port = request.json.get('port')
-        db.session.commit()
-        return jsonify({'message': 'Device updated.'} + device.id), 200
-    else:
+
+    if not device:
         return jsonify({'message': 'Device ID not found in database.'}), 404
+
+    updated = False
+
+    if request.json.get('name') and device.name != request.json.get('name'):
+        device.name = request.json.get('name')
+        updated = True
+
+    if request.json.get('type') and device.type != request.json.get('type'):
+        device.type = request.json.get('type')
+        updated = True
+
+    if request.json.get('location') and device.location != request.json.get('location'):
+        device.location = request.json.get('location')
+        updated = True
+
+    if request.json.get('category') and device.category != request.json.get('category'):
+        device.category = request.json.get('category')
+        updated = True
+
+    if request.json.get('status') and device.status != request.json.get('status'):
+        device.status = request.json.get('status')
+        updated = True
+
+    if request.json.get('ip_address') and device.ip_address != request.json.get('ip_address'):
+        device.ip_address = request.json.get('ip_address')
+        updated = True
+
+    if request.json.get('port') and device.port != request.json.get('port'):
+        device.port = request.json.get('port')
+        updated = True
+
+    if updated:
+        db.session.commit()
+        return jsonify({'message': 'Device updated.', 'device_id': device.id}), 200
+    else:
+        return jsonify({'message': 'No updates were made to the device.'}), 400
 
 
 @devices_blueprint.route("/get_type")
@@ -135,8 +179,8 @@ def get_type():
     type = request.json.get('type')
     devices = Device.query.filter_by(type=type).all()
     device_list = [{'device_id': device.id, 'name': device.name, 'type': device.type,
-                        'location': device.location, 'category': device.category, 'status': device.status,
-                        'ip_address': device.ip_address, 'port': device.port} for device in devices]
+                    'location': device.location, 'category': device.category, 'status': device.status,
+                    'ip_address': device.ip_address, 'port': device.port} for device in devices]
     return jsonify(device_list), 200
 
 

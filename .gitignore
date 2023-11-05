@@ -72,7 +72,6 @@ instance/*
 ### project specific
 Platform-Monolith_version/.env
 Platform-Monolith_version/test.py
-requirements.txt
 .idea
 __pycache__
 
@@ -89,5 +88,5 @@ supervisor-service/*.out
 ### data_handler-service
 data_dispatcher-service/application/test
 data_dispatcher-service/.env
-data-service/*.pid
-data-service/*.out
+data_dispatcher-service/*.pid
+data_dispatcher-service/*.out
