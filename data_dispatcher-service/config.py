@@ -11,7 +11,7 @@ class BaseConfig:
     :param SECRET_KEY: Key for encrypting session data.
     :param ITEMS_PER_PAGE: Default number of items per page for pagination.
     :param DEVICES_MANAGER_PORT: Port for the device manager service.
-    :param DATA_WIZARD_PORT: Port for the data wizard service.
+    :param DATA_DISPATCHER_PORT: Port for the data wizard service.
     :param SYS_CONTROL_PORT: Port for the system control service.
     """
     SECRET_KEY = os.getenv('SECRET_KEY', 'some secret words')

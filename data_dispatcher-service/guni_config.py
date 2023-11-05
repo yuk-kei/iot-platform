@@ -7,9 +7,8 @@ worker_tmp_dir = '/dev/shm'
 # Websocket gevent worker
 worker_class = 'geventwebsocket.gunicorn.workers.GeventWebSocketWorker'
 workers = 1
-
-timeout = 20
-
+timeout = 40
+log_level = 'debug'
 # Normal gevent worker
 # worker_class = 'gevent'
 # workers = 1

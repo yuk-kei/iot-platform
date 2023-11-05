@@ -24,8 +24,8 @@ data_blueprint = Blueprint('data', __name__, url_prefix="/api/data")
 
 influx_handler = InfluxDataHandler()
 kafka_service = KafkaService()
-kafka_service.subscribe(['sensor_data'])
-kafka_handler = KafkaStreamHandler(kafka_service)
+# kafka_service.subscribe(['sensor_data'])
+kafka_handler = KafkaStreamHandler()
 kafka_handler.start()
 
 
@@ -276,7 +276,7 @@ def subscribe_to_device(device_name):
     """
     global kafka_service
     global kafka_handler
-    frequency = request.args.get('frequency', default=0)
+    frequency = int(request.args.get('frequency', default=0))
     if not kafka_handler.running:
         return {'status': 'No stream running'}
 

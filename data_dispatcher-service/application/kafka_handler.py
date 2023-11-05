@@ -37,7 +37,9 @@ class KafkaService:
                 'bootstrap.servers': os.environ.get('KAFKA_BOOTSTRAP_SERVERS'),
                 'group.id': os.environ.get('KAFKA_GROUP_ID'),
                 'auto.offset.reset': os.environ.get('KAFKA_AUTO_OFFSET_RESET'),
-                'enable.auto.commit': False
+                'enable.auto.commit': True,
+                # 'fetch.max.bytes': 52428800,
+                # 'max.partition.fetch.bytes': 1048576
             }
 
         else:
@@ -55,6 +57,7 @@ class KafkaService:
         """
         consumer = self.consumer
         consumer.subscribe(topics, on_assign=on_assign)
+        # consumer.subscribe(topics)
 
     def consume(self):
         """
@@ -64,7 +67,24 @@ class KafkaService:
         :doc-author: Yukkei
         """
 
-        return self.consumer.poll(timeout=1.0)
+        return self.consumer.poll(timeout=1)
+
+    def batch_consume(self, batch_size=50):
+        """
+        This consumes a batch of messages from the Kafka queue.
+
+        :return: A list of messages that have been consumed
+        :doc-author: Yukkei
+        """
+        return self.consumer.consume(num_messages=batch_size, timeout=1)
+
+    def commit(self):
+        """
+        This commits the current offset for the consumer.
+
+        :doc-author: Yukkei
+        """
+        self.consumer.commit()
 
     def receive(self):
         """
@@ -78,7 +98,7 @@ class KafkaService:
         """
         msg = self.consume()
         if msg is None:
-            print("No message received")
+            # print("No message received")
             return None
         if msg.error():
             if msg.error().code() == KafkaError.PARTITION_EOF:
@@ -89,7 +109,7 @@ class KafkaService:
         else:
             return msg.value().decode('utf-8')
 
-    def gen_messages(self, rate=0):
+    def gen_messages(self, rate=1):
         """
         The gen_messages function is a generator that yields messages from the Kafka topic.
         It takes an optional rate argument, which defaults to 0.
@@ -133,12 +153,13 @@ class KafkaStreamHandler:
     It can also be used to get the latest data stream from a single device.
     """
 
-    def __init__(self, kafka_service: KafkaService):
-        self.kafka_service = kafka_service
+    def __init__(self, scale=1):
+        self.scale = scale
+        self.consumer_thread_pool = {}
         self.data = {}  # {device_name: measurement} use to store the last measurement
         self.flag = {}  # {device_name: write_flag} use to indicate if the measurement is new
         self.running = False  # flag to stop the thread
-        self.thread = None  # thread to run the kafka consumer
+        # self.thread = None  # thread to run the kafka consumer
 
     def storing_latest(self):
         """
@@ -150,24 +171,33 @@ class KafkaStreamHandler:
         :doc-author: Yukkei
         """
         print("begin storing latest data")
+        kafka_service = KafkaService()
+        kafka_service.subscribe(['sensor_data'])
+        sleep(1)
         while self.running:
-            msg = self.kafka_service.consume()
-            sleep(0)  # to prevent the thread from blocking
-            if msg is None:
-                continue
-            if msg.error():
-                if msg.error().code() == KafkaError.PARTITION_EOF:
-                    continue
-                else:
-                    raise KafkaException(msg.error())
-            else:
-                msg_json = json.loads(msg.value().decode('utf-8'))
-                device_name = msg_json.get("device_name", "")
-                if device_name == "":
-                    continue
 
-                self.data[device_name] = msg_json
-                self.flag[device_name] = True
+            msg = kafka_service.consume()
+            # print("message received")
+            if msg:
+                try:
+                    msg_json = json.loads(msg.value().decode('utf-8'))
+                    device_name = msg_json.get("device_name", "")
+                    if device_name:
+                        if device_name in self.data and msg_json.get('time') > self.data[device_name].get('time'):
+                            self.data[device_name] = msg_json
+                            self.flag[device_name] = True
+                        elif device_name not in self.data:
+                            self.data[device_name] = msg_json
+                            self.flag[device_name] = True
+                except Exception as e:
+                    print(f"Error: {e}")
+            else:
+                print("No message received")
+            sleep(0)
+
+        kafka_service.close()
+
+
 
     def get_latest_data_for_single(self, device_name):
         """
@@ -213,7 +243,7 @@ class KafkaStreamHandler:
 
         while self.running:
             sleep(frequency)
-            if self.flag[device_name]:
+            if self.flag.get(device_name, False):
                 self.flag[device_name] = False
 
                 yield f"data: {self.data[device_name]}\n\n"
@@ -229,8 +259,10 @@ class KafkaStreamHandler:
         """
         print("Kafka stream starting")
         self.running = True
-        self.thread = threading.Thread(target=self.storing_latest)
-        self.thread.start()
+        for i in range(self.scale):
+            self.consumer_thread_pool[i] = threading.Thread(target=self.storing_latest)
+            self.consumer_thread_pool[i].start()
+
         print("Kafka stream started")
 
     def stop(self):
@@ -243,8 +275,10 @@ class KafkaStreamHandler:
         """
         self.running = False
         sleep(2)
-        self.kafka_service.close()
-        self.thread.join()
+        for i in range(self.scale):
+            self.consumer_thread_pool[i].join()
+        # self.kafka_service.close()
+        # self.thread.join()
 
 
 class KafkaSocketIO(threading.Thread):
