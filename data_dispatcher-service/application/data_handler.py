@@ -69,7 +69,7 @@ class InfluxDataHandler:
 
         return query
 
-    def search_data_influxdb(self, field_name, field_value, start_time_str, end_time_str="0h", frequency=None):
+    def search_data_influxdb(self, field_name, field_value, start_time_str, end_time_str="0h", frequency=None, is_latest = None):
         """The search_data_influxdb function searches the InfluxDB database for a specific field value.
 
         :param self: Bind the method to an object
@@ -96,6 +96,8 @@ class InfluxDataHandler:
             frequency = time_or_time_delta(frequency)
             query += f'|> window(every: {frequency})' \
                      f'|> last()'
+        if not frequency and is_latest:
+            query += f'|> last()'
 
         result = self.query_api.query(query)
 

@@ -61,12 +61,35 @@ def query_influx_data():
         start_time = request.json.get('start_time')
         end_time = request.json.get('end_time')
         frequency = request.json.get('frequency', 0)
-        # if frequency and type(frequency) == str:
-        #     frequency = int(frequency[:-1]) * 50
-        # elif frequency and type(frequency) == int:
-        #     frequency = int(frequency)
 
         result = influx_handler.search_data_influxdb(field_name, field_value, start_time, end_time, frequency)
+        result = influx_handler.to_dict(result)
+
+        return jsonify(result), 200
+
+
+@data_blueprint.route("/query/latest", methods=['POST'])
+def query_latest_data():
+    """
+    The query_influx_data function is a POST request that takes in the following parameters:
+    field_name - The name of the field to be queried.
+    field_value - The value of the specified field to be queried.
+    start_time - A string representing a time in UTC format (YYYY-MM-DDTHH:MM:SSZ).
+    This will serve as the starting point for our query.
+    If no end time is provided, this will also serve as our ending point for our query.
+    If an end time is provided, then we will search from start_time until current time.
+
+    :return: A json response containing the queried data.
+    :doc-author: Yukkei
+    """
+    if request.method == 'POST':
+        current_app.logger.info(f"Received a POST request: {request.get_json()}")
+        field_name = request.json.get('field_name')
+        field_value = request.json.get('field_value')
+        start_time = request.json.get('start_time')
+        end_time = request.json.get('end_time')
+
+        result = influx_handler.search_data_influxdb(field_name, field_value, start_time, end_time, is_latest=True)
         result = influx_handler.to_dict(result)
 
         return jsonify(result), 200
@@ -239,7 +262,6 @@ def stream_status_endpoint():
 
 @data_blueprint.route('/kafka_stream/latest/<string:device_name>', methods=['GET'])
 def get_latest_data(device_name):
-
     """
     The get_latest_data function returns the latest data for a given device.
         Args:
@@ -259,6 +281,7 @@ def get_latest_data(device_name):
         message = kafka_handler.get_latest_data_for_single(str(device_name))
         return message, 200
     return {'status': 'Device not ready'}, 404
+
 
 @data_blueprint.route('/kafka_stream/<device_name>', methods=['GET'])
 def subscribe_to_device(device_name):
