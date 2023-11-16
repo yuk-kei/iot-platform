@@ -57,6 +57,7 @@ def check_register():
         status = request.json.get('status')
         ip_address = request.json.get('ip_address')
         port = request.json.get('port')
+        frequency = request.json.get('frequency', 0)
 
         # Check if a device with the same name already exists
         device = Device.query.filter_by(name=name).first()
@@ -67,7 +68,7 @@ def check_register():
         if not device_id:
             device_id = next_short_id()
             new_device = Device(id=device_id, name=name, type=type, category=category, location=location, status=status,
-                                ip_address=ip_address, port=port)
+                                ip_address=ip_address, port=port, frequency=frequency)
             db.session.add(new_device)
             db.session.commit()
             return jsonify({'device_id': device_id}), 201
@@ -87,7 +88,7 @@ def check_register():
         devices = Device.query.all()
         device_list = [{'device_id': device.id, 'name': device.name, 'type': device.type, 'location': device.location,
                         'category': device.category, 'status': device.status, 'ip_address': device.ip_address,
-                        'port': device.port} for device in devices]
+                        'port': device.port, 'frequency': device.frequency} for device in devices]
         return jsonify(device_list), 200
 
 
@@ -160,6 +161,10 @@ def update_device():
         device.port = request.json.get('port')
         updated = True
 
+    if request.json.get('frequency') and device.frequency != request.json.get('frequency'):
+        device.frequency = request.json.get('frequency')
+        updated = True
+
     if updated:
         db.session.commit()
         return jsonify({'message': 'Device updated.', 'device_id': device.id}), 200
@@ -180,7 +185,7 @@ def get_type():
     devices = Device.query.filter_by(type=type).all()
     device_list = [{'device_id': device.id, 'name': device.name, 'type': device.type,
                     'location': device.location, 'category': device.category, 'status': device.status,
-                    'ip_address': device.ip_address, 'port': device.port} for device in devices]
+                    'ip_address': device.ip_address, 'port': device.port, 'frequency': device.frequency} for device in devices]
     return jsonify(device_list), 200
 
 
@@ -203,7 +208,7 @@ def filter_by_field():
         devices = Device.query.filter_by(**filter_kwargs).all()
         device_list = [{'device_id': device.id, 'name': device.name, 'type': device.type,
                         'location': device.location, 'category': device.category, 'status': device.status,
-                        'ip_address': device.ip_address, 'port': device.port} for device in devices]
+                        'ip_address': device.ip_address, 'port': device.port, 'frequency': device.frequency} for device in devices]
         return jsonify(device_list), 200
     else:
         return jsonify({'message': 'Field name not found '}), 404

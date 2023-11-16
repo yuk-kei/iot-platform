@@ -45,6 +45,7 @@ class Device(db.Model):
     status = db.Column(db.String(32))
     ip_address = db.Column(db.String(128))
     port = db.Column(db.Integer)
+    frequency = db.Column(db.Float)
 
     def __repr__(self):
         return '<Device %r>' % self.name

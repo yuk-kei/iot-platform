@@ -60,12 +60,15 @@ def query_influx_data():
         field_value = request.json.get('field_value')
         start_time = request.json.get('start_time')
         end_time = request.json.get('end_time')
-        if request.json.get('frequency') is not None:
-            frequency = request.json.get('frequency')
-            result = influx_handler.search_data_influxdb(field_name, field_value, start_time, end_time, frequency)
-        else:
-            result = influx_handler.search_data_influxdb(field_name, field_value, start_time, end_time)
+        frequency = request.json.get('frequency', 0)
+        # if frequency and type(frequency) == str:
+        #     frequency = int(frequency[:-1]) * 50
+        # elif frequency and type(frequency) == int:
+        #     frequency = int(frequency)
+
+        result = influx_handler.search_data_influxdb(field_name, field_value, start_time, end_time, frequency)
         result = influx_handler.to_dict(result)
+
         return jsonify(result), 200
 
 
@@ -254,8 +257,8 @@ def get_latest_data(device_name):
 
     if device_name in kafka_handler.data and device_name in kafka_handler.flag:
         message = kafka_handler.get_latest_data_for_single(str(device_name))
-        return message
-
+        return message, 200
+    return {'status': 'Device not ready'}, 404
 
 @data_blueprint.route('/kafka_stream/<device_name>', methods=['GET'])
 def subscribe_to_device(device_name):
