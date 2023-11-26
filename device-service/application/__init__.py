@@ -1,9 +1,9 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+from flasgger import Swagger
 
 db = SQLAlchemy()
-
 
 def create_app():
     app = Flask(__name__)
@@ -33,7 +33,11 @@ def create_app():
 
     with app.app_context():
         from .routes import devices_blueprint
+        app.register_blueprint(devices_blueprint, url_prefix='/api/devices')
+        app.config['SWAGGER'] = {
+            'openapi': '3.0.3'
+        }
+        swagger = Swagger(app, template_file="swagger.yml")
 
-        app.register_blueprint(devices_blueprint)
 
     return app
