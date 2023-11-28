@@ -66,5 +66,5 @@
    After building the image, you can run it using:
 
    ```shell
-   docker run -p 9002:9002 supervisor-service:latest
+   docker run -p 9003:9003 supervisor-service:latest
    ```
