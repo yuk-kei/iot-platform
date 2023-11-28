@@ -72,6 +72,7 @@ class InfluxDataHandler:
     def search_data_influxdb(self, field_name, field_value, start_time_str, end_time_str="0h", frequency=None, is_latest = None):
         """The search_data_influxdb function searches the InfluxDB database for a specific field value.
 
+        :param is_latest:
         :param self: Bind the method to an object
         :param field_name: Specify the field that is being searched for
         :param field_value: Filter the data

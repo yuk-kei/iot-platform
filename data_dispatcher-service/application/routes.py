@@ -60,7 +60,7 @@ def query_influx_data():
         field_value = request.json.get('field_value')
         start_time = request.json.get('start_time')
         end_time = request.json.get('end_time')
-        frequency = request.json.get('frequency', 0)
+        frequency = request.json.get('frequency', None)
 
         result = influx_handler.search_data_influxdb(field_name, field_value, start_time, end_time, frequency)
         result = influx_handler.to_dict(result)
