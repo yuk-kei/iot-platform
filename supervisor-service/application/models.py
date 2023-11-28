@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 
 """
-Module for defining data classes used in the application.
+Module for defining data classes used in the api.
 
 data class `DeviceInfo` that captures basic information 
 about a device, including its ID, IP address, and port.
 
-Other data classes may be added to this module as the application expands.
+Other data classes may be added to this module as the api expands.
 """
 @dataclass
 class DeviceInfo:

@@ -153,7 +153,7 @@ def influx_query_loop():
     """
     A REST endpoint that allows the user to query the InfluxDB database for a specific field name and value.
     The function returns an event stream of data from the database, which can be
-    used by a front-end application to display real-time data.
+    used by a front-end api to display real-time data.
 
     :return: A stream of data from the database
     :doc-author: Yukkei

@@ -3,16 +3,16 @@ from . import db
 """
 Models Module
 
-This module defines the data structures (models) used in the application's database layer.
+This module defines the data structures (models) used in the api's database layer.
 Each class typically corresponds to a table in the database, encapsulating the fields and relationships 
 of that table. The models provide a framework for ORM (Object-Relational Mapping) operations, enabling
-easy interactions between the application's business logic and the database.
+easy interactions between the api's business logic and the database.
 
 Current Models:
     - Device: Represents a device entity with attributes such as name, type, location, etc.
 
 Expected Additions:
-    More models are anticipated to be added to this module as the application expands. These may include
+    More models are anticipated to be added to this module as the api expands. These may include
     models for users, transactions, logs, etc.
 
 """
