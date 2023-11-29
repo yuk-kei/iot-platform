@@ -1,5 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+
 from flask_cors import CORS
 from flasgger import Swagger
 
@@ -30,7 +32,7 @@ def create_app():
     CORS(app)
     app.config.from_object('config.DevelopmentConfig')
     db.init_app(app)
-
+    migrate = Migrate(app, db)
     with app.app_context():
         from .routes import devices_blueprint
         app.register_blueprint(devices_blueprint, url_prefix='/api/devices')

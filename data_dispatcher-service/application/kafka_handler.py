@@ -373,7 +373,7 @@ def on_assign(consumer, partitions):
     """
     The on_assign function is called when the consumer has been assigned partitions.
     The callback can be used to seek to particular offsets, or reset state associated with the assignment.
-    This function should not raise exceptions.
+    This function should not raise models.
 
     :param consumer: Assign the partitions to the consumer
     :param partitions: Assign the partitions to the consumer
