@@ -1,11 +1,11 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-
 from flask_cors import CORS
+from flask_jwt_extended import JWTManager
 from flasgger import Swagger
 
 db = SQLAlchemy()
+jwt = JWTManager()
 
 def create_app():
     app = Flask(__name__)
@@ -32,14 +32,20 @@ def create_app():
     CORS(app)
     app.config.from_object('config.DevelopmentConfig')
     db.init_app(app)
-    migrate = Migrate(app, db)
-    with app.app_context():
-        from .routes import devices_blueprint
-        app.register_blueprint(devices_blueprint, url_prefix='/api/devices')
-        app.config['SWAGGER'] = {
-            'openapi': '3.0.3'
-        }
-        swagger = Swagger(app, template_file="swagger.yml")
+    #jwt.init_app(app)
 
+    with app.app_context():
+        from .routes.sensor_routes import sensor_blueprint
+        from .routes.machine_routes import machine_blueprint
+        from .routes.lab_routes import lab_blueprint
+        #from .auth import auth_blueprint
+        app.register_blueprint(sensor_blueprint)
+        app.register_blueprint(machine_blueprint)
+        app.register_blueprint(lab_blueprint)
+        #app.register_blueprint(auth_blueprint)
+        # app.config['SWAGGER'] = {
+        #     'openapi': '3.0.3'
+        # }
+        # swagger = Swagger(app, template_file="swagger.yml")
 
     return app
