@@ -21,6 +21,8 @@ class BaseConfig:
     SYS_CONTROL_PORT = os.environ.get('SYS_CONTROL_PORT')
 
 
+
+
 class DevelopmentConfig(BaseConfig):
     """
     Configuration settings specific to the development environment.
@@ -31,7 +33,14 @@ class DevelopmentConfig(BaseConfig):
     DEBUG = True
     # SQLALCHEMY_DATABASE_URI = 'mysql://root:0818@localhost:3306/fabwork'
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL')
-
+    # raw_sql_config = {
+    #     'user': ,
+    #     'password': 'password',
+    #     'host': 'localhost',
+    #     'database': 'db',
+    #     'pool_name': 'mypool',
+    #     'pool_size': 5
+    # }
 
 class TestingConfig(BaseConfig):
     """

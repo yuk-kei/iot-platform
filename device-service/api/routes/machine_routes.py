@@ -1,57 +1,47 @@
-import time, uuid
+from flask import Blueprint, jsonify, request
+from ..services.machine_service import MachineService
 
-from ..models.machine import Machine
-from ..dao.machine_dao import MachineDAO
-from flask import Blueprint, request, jsonify
-
-machine_blueprint = Blueprint('machine', __name__, url_prefix="/api/machine")
+machine_blueprint = Blueprint('machine_routes', __name__, url_prefix='/api/v1/machine')
 
 
-@machine_blueprint.route('/test')
-def hello():
-   """
-    Test Endpoint
-    This route is used to check if the device-related endpoints are accessible and functioning.
+@machine_blueprint.route('/', methods=['GET'])
+def get_all_machines():
+    page = request.args.get('page', default=1, type=int)
+    per_page = request.args.get('per_page', default=10, type=int)
 
-    :return: A simple greeting string confirming the accessibility of the endpoint.
-    """
-   return '<h1>Machine Home</h1>'
-
-
-@machine_blueprint.route('/create', methods=['POST', 'GET', 'PUT'])
-def create_machine():
-   data = request.get_json()
-   new_machine = MachineDAO.create_machine(data.get("machine_uuid"), data.get('name'), data.get('type'),
-                                           data.get('vendor'), data.get('year'), data.get('lab_id'))
-   return jsonify({'message': f'Machine {new_machine.name} created successfully'}), 201
+    machines, total_pages, total = MachineService.get_all(page, per_page)
+    return jsonify({
+        'machines': [m.to_dict() for m in machines],
+        'total': total,
+        'pages': total_pages,
+        'current_page': page
+    })
 
 
-@machine_blueprint.route('/read')
-def read_machine():
-   machine_id = request.json.get('machine_id')
-   current_machine = MachineDAO.read_machine(machine_id)
-   machine_list = [{'machine_id': current_machine.machine_id, 'machine_uuid': current_machine.machine_uuid,
-                    'name': current_machine.name, 'type': current_machine.type,
-                    'vendor': current_machine.vendor, 'year': current_machine.year,
-                    'lab_id': current_machine.lab_id}]
-   return jsonify(machine_list), 200
+@machine_blueprint.route('/<int:machine_id>/sensors', methods=['GET'])
+def get_sensors_from_machine(machine_id):
+    page = request.args.get('page', default=1, type=int)
+    per_page = request.args.get('per_page', default=30, type=int)
+    sensors, total = MachineService.get_sensors(machine_id, page, per_page)
+
+    return jsonify({'sensors': [s.to_dict()
+                                for s in sensors],
+                    'total': total})
 
 
-@machine_blueprint.route('/delete', methods=['POST'])
-def delete_machine():
-   machine_id = request.json.get('machine_id')
-   deleted_machine = MachineDAO.delete_machine(machine_id)
-   if deleted_machine:
-      return jsonify({'message': f'Machine {deleted_machine.name} deleted successfully'})
-   else:
-      return jsonify({'message': 'Machine ID not found in database.'}), 404
+@machine_blueprint.route('/<int:machine_id>/key_sensors', methods=['GET'])
+def get_key_sensors_from_machine(machine_id):
+    page = request.args.get('page', default=1, type=int)
+    per_page = request.args.get('per_page', default=30, type=int)
+    key_sensors, total = MachineService.get_key_sensors(machine_id, page, per_page)
+
+    return jsonify({'key_sensors': [{'sensor_id': ks.sensor_id,
+                                     'name': ks.name}
+                                    for ks in key_sensors],
+                    'total': total})
 
 
-@machine_blueprint.route('/update/<machine_id>', methods=['PUT'])
-def update_machine(machine_id):
-   data = request.get_json()
-   updated_machine = MachineDAO.update_machine(machine_id, data)
-   if updated_machine:
-      return jsonify({'message': f'Machine {updated_machine.name} updated successfully'})
-   else:
-      return jsonify({'message': 'Machine ID not found in database.'}), 404
+@machine_blueprint.route('/<int:machine_id>/key_info', methods=['GET'])
+def get_key_info_from_machine(machine_id):
+    key_info = MachineService.get_key_info(machine_id)
+    return jsonify(key_info)

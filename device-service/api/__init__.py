@@ -7,6 +7,7 @@ from flasgger import Swagger
 db = SQLAlchemy()
 jwt = JWTManager()
 
+
 def create_app():
     app = Flask(__name__)
 
@@ -32,17 +33,16 @@ def create_app():
     CORS(app)
     app.config.from_object('config.DevelopmentConfig')
     db.init_app(app)
-    #jwt.init_app(app)
 
     with app.app_context():
-        from .routes.sensor_routes import sensor_blueprint
+        # from .routes.sensor_routes import sensor_blueprint
         from .routes.machine_routes import machine_blueprint
         from .routes.lab_routes import lab_blueprint
-        #from .auth import auth_blueprint
-        app.register_blueprint(sensor_blueprint)
+        # from .auth import auth_blueprint
+        # app.register_blueprint(sensor_blueprint)
         app.register_blueprint(machine_blueprint)
         app.register_blueprint(lab_blueprint)
-        #app.register_blueprint(auth_blueprint)
+        # app.register_blueprint(auth_blueprint)
         # app.config['SWAGGER'] = {
         #     'openapi': '3.0.3'
         # }
