@@ -35,13 +35,12 @@ def get_key_sensors_from_machine(machine_id):
     per_page = request.args.get('per_page', default=30, type=int)
     key_sensors, total = MachineService.get_key_sensors(machine_id, page, per_page)
 
-    return jsonify({'key_sensors': [{'sensor_id': ks.sensor_id,
-                                     'name': ks.name}
-                                    for ks in key_sensors],
-                    'total': total})
+    return jsonify(key_sensors)
 
 
 @machine_blueprint.route('/<int:machine_id>/key_info', methods=['GET'])
 def get_key_info_from_machine(machine_id):
-    key_info = MachineService.get_key_info(machine_id)
+    key_info = MachineService.get_key_sensor_details(machine_id)
     return jsonify(key_info)
+
+

@@ -24,6 +24,7 @@ class Sensor(db.Model):
     sensor_uuid = db.Column(db.CHAR(36), nullable=True)
     name = db.Column(db.String(255), nullable=True)
     category = db.Column(db.String(255), nullable=True)
+    frequency = db.Column(db.Float, nullable=True)
     sensor_type = db.Column(db.String(255), nullable=True)
     sensor_vendor = db.Column(db.String(255), nullable=True)
     vendor_pid = db.Column(db.String(255), nullable=True)

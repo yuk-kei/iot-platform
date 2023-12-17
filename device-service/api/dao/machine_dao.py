@@ -71,11 +71,12 @@ class MachineDAO:
             sensors = query.all()
             return sensors, len(sensors)
 
-    def get_key_sensors(self, machine_id, page=1, per_page=10):
+    def get_key_sensors(self, machine_id, page=None, per_page=10):
         query = (db.session
                  .query(Sensor)
                  .join(MachineSensorMap, Sensor.sensor_id == MachineSensorMap.sensor_id)
                  .filter(MachineSensorMap.machine_id == machine_id, MachineSensorMap.is_key_sensor == True))
+
 
         if per_page is not None:
             paginated = query.paginate(page=page, per_page=per_page, error_out=False)

@@ -23,9 +23,8 @@ class SensorDAO:
             paginated = (Attribute.query(sensor_id).paginate(page=page, per_page=per_page, error_out=False))
             return paginated.items, paginated.pages, paginated.total
 
-    @staticmethod
-    def get_key_attribute(sensor_id):
-        return Attribute.query.get(sensor_id).filter(Attribute.is_key_attribute == True)
+    def get_key_attribute(self, sensor_id):
+        return Attribute.query.filter(Attribute.sensor_id == sensor_id, Attribute.is_key_attribute == True)
 
     def get_all_urls(self, sensor_id):
-        return Url.query.get(sensor_id).urls
+        return Url.query.filter_by(sensor_id=sensor_id).all()
