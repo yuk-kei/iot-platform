@@ -62,7 +62,7 @@ class MachineService:
 
         for sensor in key_sensors[0]:
             key_attributes = sensor_dao.get_key_attribute(sensor.sensor_id)
-            attributes = [attr.name for attr in key_attributes]
+            attributes = [attr.attribute for attr in key_attributes]
             urls = sensor_dao.get_all_urls(sensor.sensor_id)
 
             url_dict = {url.url_type: url.url for url in urls}

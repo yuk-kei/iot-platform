@@ -95,7 +95,7 @@ class MachineDAO:
         sensor_details = []
         for sensor in sensors:
             # Fetch key attributes for each sensor
-            key_attributes = db.session.query(Attribute).filter(Attribute.sensor_id == sensor.sensor_id, Attribute.is_key_attribute == True).all()
+            key_attributes = db.session.query(Attribute).filter(Attribute.sensor_id == sensor.sensor_id, Attribute.is_key_attribute == 1).all()
             attributes = [{'attribute_id': attr.attribute_id, 'key_name': attr.attribute, 'key_value': attr.is_key_attribute} for attr in key_attributes]
 
             # Fetch URL for each sensor

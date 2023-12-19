@@ -47,7 +47,7 @@ class MachineSensorMap(db.Model):
     map_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     machine_id = db.Column(db.Integer, db.ForeignKey('machine.id'), nullable=True)
     sensor_id = db.Column(db.Integer, db.ForeignKey('sensor.id'), nullable=True)
-    is_key_sensor = db.Column(db.Boolean, nullable=True)
+    is_key_sensor = db.Column(db.Integer, nullable=True)
 
     def __repr__(self):
         return '<MachineSensorMap %r>' % self.map_id

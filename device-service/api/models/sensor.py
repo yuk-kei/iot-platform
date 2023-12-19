@@ -64,7 +64,7 @@ class Attribute(db.Model):
     attribute_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     sensor_id = db.Column(db.Integer, db.ForeignKey('sensor.sensor_id'))
     attribute = db.Column(db.String(255), nullable=True)
-    is_key_attribute = db.Column(db.Boolean, nullable=True)
+    is_key_attribute = db.Column(db.Integer, nullable=True)
 
     def __repr__(self):
         return '<Attributes %r>' % self.name
