@@ -6,9 +6,9 @@ from flask import Blueprint, request, jsonify
 """
 Routes Module
 
-This module defines the routes (endpoints) used in the application. Each route is associated with a specific
+This module defines the routes (endpoints) used in the api. Each route is associated with a specific
 HTTP request method (e.g., GET, POST, PUT, DELETE) and performs a specific action when accessed. The route
-functions typically interact with the application's business logic and data access layers to perform the
+functions typically interact with the api's business logic and data access layers to perform the
 required actions and return the appropriate HTTP response.
 
 Current Routes:
@@ -20,7 +20,7 @@ Current Routes:
     - /api/devices/filter_by: Endpoint to filter devices based on a specific field name and value.
 
 Expected Additions:
-    More routes are anticipated to be added to this module as the application expands. These may include
+    More routes are anticipated to be added to this module as the api expands. These may include
     routes for user authentication, transaction logging, etc.
 
 """
