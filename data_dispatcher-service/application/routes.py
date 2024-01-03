@@ -182,7 +182,7 @@ def start_stream_endpoint():
 
     if kafka_service is None:
         kafka_service = KafkaService()
-        kafka_service.subscribe(['sensor_data'])
+        kafka_service.subscribe(['sensor_data', 'ml_result'])
 
     if not kafka_handler or not kafka_handler.running:
         kafka_handler = KafkaStreamHandler(kafka_service)
