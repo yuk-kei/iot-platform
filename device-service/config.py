@@ -3,8 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
-class BaseConfig:
+class BaseConfig(object):
     """
     Base configuration class with common configurations.
 
@@ -14,13 +13,14 @@ class BaseConfig:
     :param DATA_WIZARD_PORT: Port for the data wizard service.
     :param SYS_CONTROL_PORT: Port for the system control service.
     """
-    SECRET_KEY = os.getenv('SECRET_KEY', 'some secret words')
+    SECRET_KEY = os.getenv('SECRET_KEY', 'you-will-never-guess')
     ITEMS_PER_PAGE = 10
     DEVICES_MANAGER_PORT = os.environ.get('DEVICES_MANAGER_PORT')
     DATA_DISPATCHER_PORT = os.environ.get('DATA_WIZARD_PORT')
     SYS_CONTROL_PORT = os.environ.get('SYS_CONTROL_PORT')
-
-
+    APIFAIRY_VERSION = '1.0'
+    DISABLE_AUTH = True
+    APIFAIRY_UI = os.environ.get('DOCS_UI', 'elements')
 
 
 class DevelopmentConfig(BaseConfig):

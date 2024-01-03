@@ -29,6 +29,7 @@ class Sensor(db.Model):
     sensor_vendor = db.Column(db.String(255), nullable=True)
     vendor_pid = db.Column(db.String(255), nullable=True)
     chip = db.Column(db.String(255), nullable=True)
+    rpi_name = db.Column(db.String(255), db.ForeignKey('rpi.name'), nullable=True)
     rpi_id = db.Column(db.Integer, nullable=True)
 
     def __repr__(self):
@@ -63,6 +64,7 @@ class Attribute(db.Model):
     __tablename__ = 'sensor_attribute'
     attribute_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     sensor_id = db.Column(db.Integer, db.ForeignKey('sensor.sensor_id'))
+    sensor_name = db.Column(db.String(255), db.ForeignKey('sensor.name'))
     attribute = db.Column(db.String(255), nullable=True)
     is_key_attribute = db.Column(db.Integer, nullable=True)
 
@@ -97,6 +99,7 @@ class Url(db.Model):
     __tablename__ = 'sensor_url'
     url_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     sensor_id = db.Column(db.Integer, db.ForeignKey('sensor.sensor_id'))
+    sensor_name = db.Column(db.String(255), db.ForeignKey('sensor.name'))
     url = db.Column(db.String(255), nullable=True)
     url_type = db.Column(db.String(255), nullable=True)
 
