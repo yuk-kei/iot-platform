@@ -1,21 +1,24 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+from flask_marshmallow import Marshmallow
 from flask_jwt_extended import JWTManager
-from flasgger import Swagger
+from apifairy import APIFairy
 
 db = SQLAlchemy()
 jwt = JWTManager()
-
+ma = Marshmallow()
+apifairy = APIFairy()
 
 def create_app():
     app = Flask(__name__)
 
+
     @app.after_request
     def add_security_headers(response):
         """
-        The add_security_headers function adds security headers to the response.
-        Currently useless but can be used to add security headers to the response.
+        This function adds security headers to the response.
+        Currently useless, since https is not enabled.
 
         :param response: Access the response object
         :return: The response object with the security headers added
@@ -32,7 +35,12 @@ def create_app():
 
     CORS(app)
     app.config.from_object('config.DevelopmentConfig')
+
     db.init_app(app)
+    ma.init_app(app)
+    apifairy.init_app(app)
+    from .routes.sensor import sensor_blueprint
+    app.register_blueprint(sensor_blueprint)
 
     with app.app_context():
         # from .routes.sensor_routes import sensor_blueprint
@@ -49,3 +57,38 @@ def create_app():
         # swagger = Swagger(app, template_file="swagger.yml")
 
     return app
+
+
+# import logging
+# import os
+# from logging.handlers import RotatingFileHandler
+#
+# from flask import Flask, request, current_app
+# from app_config import Config
+#
+#
+# def create_app(config_class=Config):
+#     app = Flask(__name__)
+#     app.config.from_object(config_class)
+#
+#     if not app.debug and not app.testing:
+#
+#         if app.config['LOG_TO_STDOUT']:
+#             stream_handler = logging.StreamHandler()
+#             stream_handler.setLevel(logging.INFO)
+#             app.logger.addHandler(stream_handler)
+#         else:
+#             if not os.path.exists('logs'):
+#                 os.mkdir('logs')
+#             file_handler = RotatingFileHandler('logs/data service.log',
+#                                                maxBytes=10240, backupCount=10)
+#             file_handler.setFormatter(logging.Formatter(
+#                 '%(asctime)s %(levelname)s: %(message)s '
+#                 '[in %(pathname)s:%(lineno)d]'))
+#             file_handler.setLevel(logging.INFO)
+#             app.logger.addHandler(file_handler)
+#
+#         app.logger.setLevel(logging.INFO)
+#         app.logger.info('Data service startup')
+#
+#     return app
