@@ -172,7 +172,7 @@ class KafkaStreamHandler:
         """
         print("begin storing latest data")
         kafka_service = KafkaService()
-        kafka_service.subscribe(['sensor_data'])
+        kafka_service.subscribe(['sensor_data', 'ml_result', 'slb_out'])
         sleep(1)
         while self.running:
 
@@ -182,13 +182,18 @@ class KafkaStreamHandler:
                 try:
                     msg_json = json.loads(msg.value().decode('utf-8'))
                     device_name = msg_json.get("device_name", "")
+                    identifier = msg_json.get("identifier", "")
                     if device_name:
-                        if device_name in self.data and msg_json.get('time') > self.data[device_name].get('time'):
+                        if identifier:
+                            device_name = f"{device_name}_{identifier}"
+                        if device_name in self.data and str(msg_json.get('time')) > str(self.data[device_name].get('time')):
                             self.data[device_name] = msg_json
-                            self.flag[device_name] = True
+                            self.flag[device_name] += 1
+                            if self.flag[device_name] > 100:
+                                self.flag[device_name] = 0
                         elif device_name not in self.data:
                             self.data[device_name] = msg_json
-                            self.flag[device_name] = True
+                            self.flag[device_name] = 0
                 except Exception as e:
                     print(f"Error: {e}")
             else:
@@ -239,12 +244,14 @@ class KafkaStreamHandler:
         """
         if device_name not in self.data:
             print("Error: device name not found")
-            return None
+            return
 
+        last_seen_flag = -1
         while self.running:
             sleep(frequency)
-            if self.flag.get(device_name, False):
-                self.flag[device_name] = False
+            current_flag = self.flag.get(device_name, 0)
+            if current_flag != last_seen_flag:
+                last_seen_flag = current_flag
 
                 yield f"data: {self.data[device_name]}\n\n"
 
@@ -373,7 +380,7 @@ def on_assign(consumer, partitions):
     """
     The on_assign function is called when the consumer has been assigned partitions.
     The callback can be used to seek to particular offsets, or reset state associated with the assignment.
-    This function should not raise exceptions.
+    This function should not raise models.
 
     :param consumer: Assign the partitions to the consumer
     :param partitions: Assign the partitions to the consumer
