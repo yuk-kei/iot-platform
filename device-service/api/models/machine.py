@@ -17,14 +17,14 @@ class Machine(db.Model):
     """
 
     __tablename__ = 'machine'
-    machine_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    machine_id = db.Column('machine_id', db.Integer, primary_key=True, autoincrement=True)
     machine_uuid = db.Column(db.CHAR(36), nullable=True)
     name = db.Column(db.String(255), nullable=True)
     type = db.Column(db.String(255), nullable=True)
     vendor = db.Column(db.String(255), nullable=True)
     year = db.Column(db.Integer, nullable=True)
     lab_name = db.Column(db.String(255), db.ForeignKey('lab.name'), nullable=True)
-    lab_id = db.Column(db.Integer, db.ForeignKey('lab.id'), nullable=True)
+    lab_id = db.Column(db.Integer, db.ForeignKey('lab.lab_id'), nullable=True)
 
     def __repr__(self):
         return '<Machine %r>' % self.name

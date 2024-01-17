@@ -98,7 +98,7 @@ def get_sensors_from_machine(machine_identifier):
                     'total': total})
 
 
-@machine_blueprint.route('/<int:machine_identifier>/key_sensors', methods=['GET'])
+@machine_blueprint.route('/<machine_identifier>/key_sensors', methods=['GET'])
 def get_key_sensors_from_machine(machine_identifier):
     try:
         # Attempt to convert to an integer

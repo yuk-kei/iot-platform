@@ -25,7 +25,7 @@ class Lab(db.Model):
         __repr__(): Returns a string representation of the Lab object.
     """
     __tablename__ = 'lab'
-    lab_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    lab_id = db.Column('lab_id',db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(255), nullable=True)
     type = db.Column(db.String(255), nullable=True)
 

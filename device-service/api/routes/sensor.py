@@ -12,10 +12,20 @@ sensors_schema = SensorSchema(many=True)
 @response(sensors_schema, 200)
 def get_sensors():
     page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 30, type=int)
+    per_page = request.args.get('per_page', 50, type=int)
     sensors, total_items = SensorDAO.get_all(page, per_page)
 
     return sensors
+
+
+@sensor_blueprint.route('/details', methods=['GET'])
+# @response(sensors_schema, 200)
+def get_sensors_details():
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 50, type=int)
+    sensors, total_items = SensorDAO.get_all_details(page, per_page)
+
+    return jsonify(sensors)
 
 
 @sensor_blueprint.route('/register', methods=['POST'])

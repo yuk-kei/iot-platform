@@ -182,7 +182,7 @@ class MachineDAO:
                                                                 Attribute.is_key_attribute == 1).all()
 
             attributes = [
-                {'attribute_id': attr.attribute_id, 'key_name': attr.attribute, 'key_value': attr.is_key_attribute} for
+                {'attribute_id': attr.attribute_id, 'name': attr.attribute, 'level': attr.is_key_attribute} for
                 attr in key_attributes]
 
             # Fetch URL for each sensor
@@ -190,8 +190,8 @@ class MachineDAO:
             url_dict = {url.url_type: url.url for url in urls}
 
             sensor_details.append({
-                'sensor_id': sensor.sensor_id,
-                'sensor_name': sensor.name,
+                'id': sensor.sensor_id,
+                'name': sensor.name,
                 'category': sensor.category,
                 'attributes': attributes,  # Your existing code for attributes
                 'urls': url_dict
@@ -220,7 +220,7 @@ class MachineDAO:
             key_attributes = db.session.query(Attribute).filter(Attribute.sensor_id == sensor.sensor_id,
                                                                 Attribute.is_key_attribute == attr_key_level).all()
             attributes = [
-                {'attribute_id': attr.attribute_id, 'key_name': attr.attribute, 'key_value': attr.is_key_attribute} for
+                {'id': attr.attribute_id, 'name': attr.attribute, 'level': attr.is_key_attribute} for
                 attr in key_attributes]
 
             # Fetch URL for each sensor
@@ -229,7 +229,7 @@ class MachineDAO:
             # url_list = [{'url_id': url.url_id, 'url': url.url, 'url_type': url.url_type} for url in urls]
 
             sensor_details.append({
-                'sensor_id': sensor.sensor_id,
+                'id': sensor.sensor_id,
                 'attributes': attributes,
                 'urls': url_dict
             })
