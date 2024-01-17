@@ -63,7 +63,7 @@ def query_influx_data():
         frequency = request.json.get('frequency', None)
 
         result = influx_handler.search_data_influxdb(field_name, field_value, start_time, end_time, frequency)
-        result = influx_handler.to_dict(result)
+        result = influx_handler.format_results(result)
 
         return jsonify(result), 200
 
@@ -90,7 +90,7 @@ def query_latest_data():
         end_time = request.json.get('end_time')
 
         result = influx_handler.search_data_influxdb(field_name, field_value, start_time, end_time, is_latest=True)
-        result = influx_handler.to_dict(result)
+        result = influx_handler.format_results(result)
 
         return jsonify(result), 200
 
@@ -112,6 +112,46 @@ def query_last_min(field_name):
     return record.to_json()
 
 
+@data_blueprint.route("/csv", methods=['GET', 'POST'])
+def get_csv():
+    """
+    The get_csv function is a GET request that takes in the following parameters:
+    field_name - The name of the field to be queried.
+    field_value - The value of the specified field to be queried.
+    start_time - A string representing a time in UTC format (YYYY-MM-DDTHH:MM:SSZ).
+    This will serve as the starting point for our query.
+    If no end time is provided, this will also serve as our ending point for our query.
+    If an end time is provided, then we will search from start_time until current time.
+
+    :return: A csv file containing the queried data.
+    :doc-author: Yukkei
+    """
+    if request.method == 'POST':
+        field_name = request.json.get('field_name')
+        field_value = request.json.get('field_value')
+        start_time = request.json.get('start_time')
+        end_time = request.json.get('end_time', default="0s")
+        frequency = request.json.get('frequency', default=None)
+        iso_format_str = request.args.get('iso_format', default='False')
+
+    elif request.method == 'GET':
+        field_name = request.args.get('field_name')
+        field_value = request.args.get('field_value')
+        start_time = request.args.get('start_time')
+        end_time = request.args.get('end_time', default="0s")
+        frequency = request.args.get('frequency', default=None)
+        iso_format_str = request.args.get('iso_format', default='False')
+    else:
+        return jsonify({'message': 'Invalid request method'}), 400
+
+    iso_format = iso_format_str.lower() == 'true'
+    result = influx_handler.search_data_influxdb(field_name, field_value, start_time, end_time, frequency)
+    result = influx_handler.format_results(result, iso_format=iso_format)
+
+    return Response(result.to_csv(), mimetype="text/csv",
+                    headers={"Content-disposition": "attachment; filename=data.csv"})
+
+
 @data_blueprint.route("/influx_query", methods=['POST'])
 def execute_query():
     """
@@ -124,7 +164,7 @@ def execute_query():
     query = request.json.get('query', None)
     current_app.logger.info(f"Received a POST request: {request.get_json()}")
     result = influx_handler.query_measurements(query)
-    result = influx_handler.to_dict(result)
+    result = influx_handler.format_results(result)
     return jsonify(result), 200
 
 

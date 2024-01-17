@@ -1,6 +1,7 @@
 import os
 import gevent
 import pytz
+import pandas as pd
 
 from influxdb_client.client import influxdb_client
 
@@ -69,7 +70,8 @@ class InfluxDataHandler:
 
         return query
 
-    def search_data_influxdb(self, field_name, field_value, start_time_str, end_time_str="0h", frequency=None, is_latest = None):
+    def search_data_influxdb(self, field_name, field_value, start_time_str, end_time_str="0h", frequency=None,
+                             is_latest=None):
         """The search_data_influxdb function searches the InfluxDB database for a specific field value.
 
         :param is_latest:
@@ -83,7 +85,6 @@ class InfluxDataHandler:
         :doc-author: Yukkei
         """
         start_time = time_or_time_delta(start_time_str)
-
         end_time = time_or_time_delta(end_time_str)
 
         if field_name == "field" or field_name == "measurement" or field_name == "value":
@@ -162,7 +163,7 @@ class InfluxDataHandler:
         while True:
             # continuously stream data
             data = self.search_data_influxdb(field_name, field_value, time_interval)
-            data = self.to_dict(data)
+            data = self.format_results(data)
             gevent.sleep(rate)
 
             yield f'data:{data}\n\n'
@@ -177,17 +178,18 @@ class InfluxDataHandler:
 
         return self.query_api.query(query)
 
-    def to_dict(self, result, frequency=None, time_zone='America/Los_Angeles'):
+    def format_results(self, result, frequency=None, use_local_time=False, iso_format=False):
         """
         The to_dict function takes the result of a query and converts it into a list of dictionaries.
         Each dictionary contains the time, measurement, field and value for each record in the result.
 
-        :param self: Represent the instance of the class
+        :param use_local_time:
+        :param frequency:
         :param result: Pass the result of the query to the function
         :return: A list of dictionaries
         :doc-author: Yukkei
         """
-        list_of_dict = []
+        result_dict = {}
 
         if frequency is not None and frequency > 0:
             # total_records = len(result[0].records)
@@ -197,22 +199,41 @@ class InfluxDataHandler:
                 for i, records in enumerate(table.records):
 
                     if i % frequency == 0:
-                        local_time = records["_time"].astimezone(self.time_zone)
-                        list_of_dict.append({
-                            "time": local_time.strftime("%Y-%m-%d %H:%M:%S.%f"),
-                            "field": records["_field"],
-                            "value": records["_value"]
-                        })
+
+                        time = records.get_time().astimezone(self.time_zone) if use_local_time else records.get_time()
+                        formatted_time = time.strftime("%Y-%m-%d %H:%M:%S.%f") if not iso_format else time.isoformat()
+
+                        if formatted_time not in result_dict:
+                            result_dict[formatted_time] = {}
+                        result_dict[formatted_time][records["_field"]] = records.get_value()
         else:
             for table in result:
                 for records in table.records:
-                    local_time = records["_time"].astimezone(self.time_zone)
-                    list_of_dict.append({
-                        "time": local_time.strftime("%Y-%m-%d %H:%M:%S.%f"),
-                        "field": records["_field"],
-                        "value": records["_value"]
-                    })
-        return list_of_dict
+
+                    time = records.get_time().astimezone(self.time_zone) if use_local_time else records.get_time()
+
+                    formatted_time = time.strftime("%Y-%m-%d %H:%M:%S.%f") if not iso_format else time.isoformat()
+
+                    if formatted_time not in result_dict:
+                        result_dict[formatted_time] = {}
+                    result_dict[formatted_time][records["_field"]] = records.get_value()
+
+        return result_dict
+
+    def to_csv(self, results):
+
+        rows = self.format_results(results)
+
+        transformed_data = []
+        for time, values in rows.items():
+            row = {'time': time}
+            row.update(values)
+            transformed_data.append(row)
+
+        # Create a DataFrame
+        df = pd.DataFrame(transformed_data)
+
+        return df
 
 
 def time_or_time_delta(curr_time_str):
