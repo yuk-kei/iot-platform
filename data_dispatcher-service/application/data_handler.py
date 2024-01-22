@@ -220,9 +220,9 @@ class InfluxDataHandler:
 
         return result_dict
 
-    def to_csv(self, results):
+    def to_csv(self, formatted_results):
 
-        rows = self.format_results(results)
+        rows = formatted_results
 
         transformed_data = []
         for time, values in rows.items():

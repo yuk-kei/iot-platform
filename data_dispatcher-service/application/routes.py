@@ -1,3 +1,5 @@
+import io
+
 from flask import Blueprint, request, jsonify, Response, current_app
 
 from .data_handler import InfluxDataHandler
@@ -127,18 +129,18 @@ def get_csv():
     :doc-author: Yukkei
     """
     if request.method == 'POST':
-        field_name = request.json.get('field_name')
+        field_name = request.json.get('field_name', default="measurement")
         field_value = request.json.get('field_value')
         start_time = request.json.get('start_time')
-        end_time = request.json.get('end_time', default="0s")
+        end_time = request.json.get('end_time', default="-0s")
         frequency = request.json.get('frequency', default=None)
         iso_format_str = request.args.get('iso_format', default='False')
 
     elif request.method == 'GET':
-        field_name = request.args.get('field_name')
+        field_name = request.args.get('field_name', default="measurement")
         field_value = request.args.get('field_value')
         start_time = request.args.get('start_time')
-        end_time = request.args.get('end_time', default="0s")
+        end_time = request.args.get('end_time', default="-0s")
         frequency = request.args.get('frequency', default=None)
         iso_format_str = request.args.get('iso_format', default='False')
     else:
@@ -146,9 +148,13 @@ def get_csv():
 
     iso_format = iso_format_str.lower() == 'true'
     result = influx_handler.search_data_influxdb(field_name, field_value, start_time, end_time, frequency)
-    result = influx_handler.format_results(result, iso_format=iso_format)
-
-    return Response(result.to_csv(), mimetype="text/csv",
+    format_result = influx_handler.format_results(result, iso_format=iso_format)
+    df = influx_handler.to_csv(format_result)
+    buffer = io.StringIO()
+    df.to_csv(buffer, index=False)
+    # Seek to start
+    buffer.seek(0)
+    return Response(buffer.getvalue(), mimetype="text/csv",
                     headers={"Content-disposition": "attachment; filename=data.csv"})
 
 
