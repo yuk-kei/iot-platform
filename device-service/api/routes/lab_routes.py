@@ -7,7 +7,7 @@ from flask import Blueprint, request, jsonify
 lab_blueprint = Blueprint('lab', __name__, url_prefix="/api/v1/lab")
 
 
-@lab_blueprint.route('<lab_identifier>/get_all_info', methods=['GET'])
+@lab_blueprint.route('<lab_identifier>/get-all-info', methods=['GET'])
 def get_lab_key_info(lab_identifier):
     try:
         # Attempt to convert to an integer

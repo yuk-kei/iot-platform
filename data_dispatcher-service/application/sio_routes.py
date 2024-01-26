@@ -34,7 +34,7 @@ def test_connection():
     return '<h1>Connection Success</h1>'
 
 
-@kafka_blueprint.route('/start_stream/')
+@kafka_blueprint.route('/start-stream/')
 def start_stream_endpoint():
     """
     The start_stream_endpoint function starts a background thread that listens to the Kafka topic 'sensor_data' and emits
@@ -66,7 +66,7 @@ def start_stream_endpoint():
         return {'status': 'Stream already running'}
 
 
-@kafka_blueprint.route('/stop_stream/')
+@kafka_blueprint.route('/stop-stream/')
 def stop_stream():
     """
     The stop_stream function stops the Kafka stream.
@@ -95,7 +95,7 @@ def stop_stream():
         return {'status': 'No stream to stop'}
 
 
-@kafka_blueprint.route('/pause_stream/')
+@kafka_blueprint.route('/pause-stream/')
 def pause_stream():
     """
     The pause_stream function pauses the stream of data from Kafka.
@@ -114,7 +114,7 @@ def pause_stream():
         return {'status': 'No stream to pause'}
 
 
-@kafka_blueprint.route('/resume_stream/')
+@kafka_blueprint.route('/resume-stream/')
 def resume_stream():
     """
     The resume_stream function resumes the stream if it is paused.
