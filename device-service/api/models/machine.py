@@ -91,7 +91,7 @@ class MachineOverview(db.Model):
 
 
 class Rpi(db.Model):
-    __tablename__ = 'rpi'
+    __tablename__ = 'rpis'
     rpi_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     rpi_uuid = db.Column(db.CHAR(36), nullable=True)
     name = db.Column(db.String(255), nullable=True)

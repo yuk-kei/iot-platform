@@ -29,9 +29,9 @@ def get_sensors_details():
 
 
 @sensor_blueprint.route('/register', methods=['POST'])
-# @body(SensorRegistrationSchema)
-# @response(SensorSchema, 201)
-def create_sensor():
+@body(SensorRegistrationSchema)
+@response(SensorSchema, 201)
+def create_sensor(param=None):
     sensor_info = request.get_json()
     rpi_name = sensor_info.pop('rpi_name', None)
     machine_lists = sensor_info.pop('machine_list', [])
@@ -43,5 +43,4 @@ def create_sensor():
                               machine_names=machine_lists,
                               attributes=attributes,
                               urls=urls)
-
-    return jsonify(sensor.to_dict()), 201
+    return sensor, 201

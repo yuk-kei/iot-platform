@@ -29,7 +29,7 @@ class Sensor(db.Model):
     sensor_vendor = db.Column(db.String(255), nullable=True)
     vendor_pid = db.Column(db.String(255), nullable=True)
     chip = db.Column(db.String(255), nullable=True)
-    rpi_name = db.Column(db.String(255), db.ForeignKey('rpi.name'), nullable=True)
+    rpi_name = db.Column(db.String(255), db.ForeignKey('rpis.name'), nullable=True)
     rpi_id = db.Column(db.Integer, nullable=True)
 
     def __repr__(self):

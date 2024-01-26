@@ -2,6 +2,7 @@ from marshmallow import validate, fields, validates, validates_schema, \
     ValidationError, post_dump
 from api import ma, db
 from api.models.sensor import Sensor
+from marshmallow_sqlalchemy import SQLAlchemySchema, auto_field
 
 
 class AttributeSchema(ma.Schema):
@@ -27,15 +28,16 @@ class UrlSchema(ma.SQLAlchemySchema):
 
 class SensorRegistrationSchema(ma.Schema):
     id = fields.Int(allow_none=True)
-    uuid = fields.Str(allow_none=True)
+    sensor_uuid = fields.Str(allow_none=True)
     name = fields.Str()
     frequency = fields.Float(allow_none=True)
     category = fields.Str(allow_none=True)
     sensor_type = fields.Str(allow_none=True)
     sensor_vendor = fields.Str(allow_none=True)
-    vendor_id = fields.Str(allow_none=True)
+    vendor_pid = fields.Str(allow_none=True)
     chip = fields.Str(allow_none=True)
     rpi_name = fields.Str(allow_none=True)
+    rpi_id = fields.Int(allow_none=True)
     is_key_sensor = fields.Int(allow_none=True)
     machine_list = fields.List(fields.Str(allow_none=True))
     Attributes = fields.List(fields.Nested(AttributeSchema))
