@@ -35,3 +35,4 @@ Werkzeug==2.3.6
 wsproto==1.2.0
 zope.event==5.0
 zope.interface==6.0
+pandas==2.1.4

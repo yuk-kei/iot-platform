@@ -19,7 +19,7 @@ services:
       context: ./device-service
       dockerfile: Dockerfile.device
     ports:
-      - "9002:9002"
+      - "9010:9010"
     volumes:
       - ./device-service:/device-app
     networks:

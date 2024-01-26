@@ -1,5 +1,7 @@
 import os
 import gevent
+import pytz
+import pandas as pd
 
 from influxdb_client.client import influxdb_client
 
@@ -41,6 +43,7 @@ class InfluxDataHandler:
         self.write_api = self.client.write_api()
         self.query_api = self.client.query_api()
         self.bucket_name = os.environ.get('INFLUX_BUCKET') if bucket is None else bucket
+        self.time_zone = pytz.timezone('America/Los_Angeles')
 
     def query_builder(self, query_dicts_list: list, start_time, end_time="0h", bucket_name=None):
 
@@ -67,9 +70,11 @@ class InfluxDataHandler:
 
         return query
 
-    def search_data_influxdb(self, field_name, field_value, start_time_str, end_time_str="0h", frequency=None):
+    def search_data_influxdb(self, field_name, field_value, start_time_str, end_time_str="0h", frequency=None,
+                             is_latest=None):
         """The search_data_influxdb function searches the InfluxDB database for a specific field value.
 
+        :param is_latest:
         :param self: Bind the method to an object
         :param field_name: Specify the field that is being searched for
         :param field_value: Filter the data
@@ -80,7 +85,6 @@ class InfluxDataHandler:
         :doc-author: Yukkei
         """
         start_time = time_or_time_delta(start_time_str)
-
         end_time = time_or_time_delta(end_time_str)
 
         if field_name == "field" or field_name == "measurement" or field_name == "value":
@@ -89,12 +93,16 @@ class InfluxDataHandler:
         query = f'from(bucket: "{self.bucket_name}") ' \
                 f'|> range(start: {start_time}, stop:{end_time})' \
                 f'|> filter(fn: (r) => r["{field_name}"] == "{field_value}")'
+
         if frequency is not None:
             frequency = time_or_time_delta(frequency)
-            query += f'|> aggregateWindow(every: {frequency}, fn: mean, createEmpty: false)'
-            query += f'|> yield(name: "mean")'  # Not sure if this is needed
-            # query += f'|> map(fn: (r) => ({{r with _time: r._time + {frequency}}}))'
+            query += f'|> window(every: {frequency})' \
+                     f'|> last()'
+        if not frequency and is_latest:
+            query += f'|> last()'
+
         result = self.query_api.query(query)
+
         return result
 
     def query_large_data(self, field_name, field_value, start_time, end_time="0h"):
@@ -155,7 +163,7 @@ class InfluxDataHandler:
         while True:
             # continuously stream data
             data = self.search_data_influxdb(field_name, field_value, time_interval)
-            data = self.to_dict(data)
+            data = self.format_results(data)
             gevent.sleep(rate)
 
             yield f'data:{data}\n\n'
@@ -170,26 +178,62 @@ class InfluxDataHandler:
 
         return self.query_api.query(query)
 
-    def to_dict(self, result):
+    def format_results(self, result, frequency=None, use_local_time=False, iso_format=False):
         """
         The to_dict function takes the result of a query and converts it into a list of dictionaries.
         Each dictionary contains the time, measurement, field and value for each record in the result.
 
-        :param self: Represent the instance of the class
+        :param use_local_time:
+        :param frequency:
         :param result: Pass the result of the query to the function
         :return: A list of dictionaries
         :doc-author: Yukkei
         """
-        list_of_dict = []
-        for table in result:
-            for records in table.records:
-                local_time = records["_time"].astimezone()
-                list_of_dict.append({
-                    "time": local_time.strftime("%Y-%m-%d %H:%M:%S.%f"),
-                    "field": records["_field"],
-                    "value": records["_value"]
-                })
-        return list_of_dict
+        result_dict = {}
+
+        if frequency is not None and frequency > 0:
+            # total_records = len(result[0].records)
+            # sampling_point = int(total_records / frequency) + 1 if frequency is not None else None
+
+            for table in result:
+                for i, records in enumerate(table.records):
+
+                    if i % frequency == 0:
+
+                        time = records.get_time().astimezone(self.time_zone) if use_local_time else records.get_time()
+                        formatted_time = time.strftime("%Y-%m-%d %H:%M:%S.%f") if not iso_format else time.isoformat()
+
+                        if formatted_time not in result_dict:
+                            result_dict[formatted_time] = {}
+                        result_dict[formatted_time][records["_field"]] = records.get_value()
+        else:
+            for table in result:
+                for records in table.records:
+
+                    time = records.get_time().astimezone(self.time_zone) if use_local_time else records.get_time()
+
+                    formatted_time = time.strftime("%Y-%m-%d %H:%M:%S.%f") if not iso_format else time.isoformat()
+
+                    if formatted_time not in result_dict:
+                        result_dict[formatted_time] = {}
+                    result_dict[formatted_time][records["_field"]] = records.get_value()
+
+        return result_dict
+
+    def to_csv(self, formatted_results):
+
+        rows = formatted_results
+
+        transformed_data = []
+        for time, values in rows.items():
+            row = {'time': time}
+            row.update(values)
+            transformed_data.append(row)
+
+        # Create a DataFrame
+        df = pd.DataFrame(transformed_data)
+
+        return df
 
 
 def time_or_time_delta(curr_time_str):
