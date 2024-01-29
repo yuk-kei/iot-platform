@@ -262,7 +262,7 @@ def get_latest_data_all():
     return message
 
 
-@data_blueprint.route('/kafka_stream/stop', methods=['GET'])
+@data_blueprint.route('/kafka-stream/stop', methods=['GET'])
 def stop_stream_endpoint():
     """
     Stop the service that could get the latest data from the kafka stream.
