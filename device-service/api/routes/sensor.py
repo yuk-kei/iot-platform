@@ -44,3 +44,18 @@ def create_sensor(param=None):
                               attributes=attributes,
                               urls=urls)
     return sensor, 201
+
+
+@sensor_blueprint.route('/key-attribute', methods=['GET'])
+def get_key_attribute():
+    sensor_identifier = request.args.get('sensor_identifier', None)
+    attr_key_level = request.args.get('attr_key_level', None)
+    try:
+        # Attempt to convert to an integer
+        sensor_identifier = int(sensor_identifier)
+    except ValueError:
+        sensor_identifier = sensor_identifier
+    key_attribute = SensorDAO.get_key_attribute(sensor_identifier=sensor_identifier,
+                                                attr_key_level=attr_key_level)
+    return jsonify(key_attribute)
+

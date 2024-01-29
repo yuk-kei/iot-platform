@@ -95,8 +95,22 @@ class SensorDAO:
             return paginated.items, paginated.pages, paginated.total
 
     @staticmethod
-    def get_key_attribute(sensor_id, attr_key_level=1):
-        return Attribute.query.filter(Attribute.sensor_id == sensor_id, Attribute.is_key_attribute == attr_key_level)
+    def get_key_attribute(sensor_identifier, attr_key_level=1):
+        if isinstance(sensor_identifier, int):
+            query = (db.session
+                     .query(Attribute)
+                     .filter(Attribute.sensor_id == sensor_identifier)
+                     .filter(Attribute.is_key_attribute >= attr_key_level))
+        elif isinstance(sensor_identifier, str):
+            query = (db.session
+                     .query(Attribute)
+                     .filter(Attribute.sensor_name == sensor_identifier)
+                     .filter(Attribute.is_key_attribute >= attr_key_level))
+        else:
+            raise ValueError('Sensor identifier must be either an id or a name')
+
+        results = query.all()  # Execute the query
+        return [attr.to_dict() for attr in results]
 
     @staticmethod
     def get_all_urls(sensor_id):

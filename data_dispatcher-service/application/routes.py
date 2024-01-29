@@ -129,18 +129,20 @@ def get_csv():
     :doc-author: Yukkei
     """
     if request.method == 'POST':
-        field_name = request.json.get('field_name', default="measurement")
+        field_name = request.json.get('field_name', "measurement")
         field_value = request.json.get('field_value')
         start_time = request.json.get('start_time')
-        end_time = request.json.get('end_time', default="-0s")
-        frequency = request.json.get('frequency', default=None)
-        iso_format_str = request.args.get('iso_format', default='False')
+        end_time = request.json.get('end_time', "-0s")
+        local_time = request.json.get('local_time', 'True')
+        frequency = request.json.get('frequency', None)
+        iso_format_str = request.args.get('iso_format', 'False')
 
     elif request.method == 'GET':
         field_name = request.args.get('field_name', default="measurement")
         field_value = request.args.get('field_value')
         start_time = request.args.get('start_time')
         end_time = request.args.get('end_time', default="-0s")
+        local_time = request.args.get('local_time', default='True')
         frequency = request.args.get('frequency', default=None)
         iso_format_str = request.args.get('iso_format', default='False')
     else:
@@ -148,7 +150,7 @@ def get_csv():
 
     iso_format = iso_format_str.lower() == 'true'
     result = influx_handler.search_data_influxdb(field_name, field_value, start_time, end_time, frequency)
-    format_result = influx_handler.format_results(result, iso_format=iso_format)
+    format_result = influx_handler.format_results(result, iso_format=iso_format, use_local_time=local_time)
     df = influx_handler.to_csv(format_result)
     buffer = io.StringIO()
     df.to_csv(buffer, index=False)
