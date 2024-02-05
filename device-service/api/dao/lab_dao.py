@@ -44,6 +44,11 @@ class LabDAO:
         results = []
         for machine_id, machine_name in machine_info:
             sensor_details = MachineDAO.get_key_info(machine_id, sensor_key_level=2, attr_key_level=2)
-            machine_details = {machine_name: sensor_details}
-            results.append(machine_details)
+            if not sensor_details:
+                sensor_details.append({'machine_name': machine_name})
+                results.extend(sensor_details)
+            else:
+                sensor_details = sensor_details[0]
+                sensor_details['machine_name'] = machine_name
+                results.append(sensor_details)
         return results
