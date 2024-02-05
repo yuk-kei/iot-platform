@@ -97,7 +97,7 @@ def query_latest_data():
         return jsonify(result), 200
 
 
-@data_blueprint.route("/last_min/<string:field_name>")
+@data_blueprint.route("/last-min/<string:field_name>")
 def query_last_min(field_name):
     """
     Not recommended to use this function. Use the query_influx_data function instead.
@@ -160,7 +160,7 @@ def get_csv():
                     headers={"Content-disposition": "attachment; filename=data.csv"})
 
 
-@data_blueprint.route("/influx_query", methods=['POST'])
+@data_blueprint.route("/influx-query", methods=['POST'])
 def execute_query():
     """
     In danger of query injection. Not recommended to use in client side,
@@ -176,7 +176,7 @@ def execute_query():
     return jsonify(result), 200
 
 
-@data_blueprint.route("/large_data", methods=['POST'])
+@data_blueprint.route("/large-data", methods=['POST'])
 def query_large_data():
     """
     The query_large_data function is used to query large data sets from the InfluxDB database.
@@ -196,7 +196,7 @@ def query_large_data():
                     mimetype='text/event-stream')
 
 
-@data_blueprint.route('/influx_stream', methods=['POST'])
+@data_blueprint.route('/influx-stream', methods=['POST'])
 def influx_query_loop():
     """
     A REST endpoint that allows the user to query the InfluxDB database for a specific field name and value.
@@ -215,7 +215,7 @@ def influx_query_loop():
                     mimetype='text/event-stream')
 
 
-@data_blueprint.route('/kafka_stream/start', methods=['GET'])
+@data_blueprint.route('/kafka-stream/start', methods=['GET'])
 def start_stream_endpoint():
     """
     Starts a thread that listens to the Kafka topic 'sensor_data' and
@@ -243,7 +243,7 @@ def start_stream_endpoint():
         return {'status': 'Stream already running'}
 
 
-@data_blueprint.route('/kafka_stream/latest/', methods=['GET'])
+@data_blueprint.route('/kafka-stream/latest/', methods=['GET'])
 def get_latest_data_all():
     """
     Get the latest data for all sensors.
@@ -264,7 +264,7 @@ def get_latest_data_all():
     return message
 
 
-@data_blueprint.route('/kafka_stream/stop', methods=['GET'])
+@data_blueprint.route('/kafka-stream/stop', methods=['GET'])
 def stop_stream_endpoint():
     """
     Stop the service that could get the latest data from the kafka stream.
@@ -287,7 +287,7 @@ def stop_stream_endpoint():
         return {'status': 'Stream already stopped'}
 
 
-@data_blueprint.route('/kafka_stream/status', methods=['GET'])
+@data_blueprint.route('/kafka-stream/status', methods=['GET'])
 def stream_status_endpoint():
     """
     Check whether we can retrieve data from the kafka stream.
@@ -308,7 +308,7 @@ def stream_status_endpoint():
         return {'status': 'Stream stopped'}
 
 
-@data_blueprint.route('/kafka_stream/latest/<string:device_name>', methods=['GET'])
+@data_blueprint.route('/kafka-stream/latest/<string:device_name>', methods=['GET'])
 def get_latest_data(device_name):
     """
     The get_latest_data function returns the latest data for a given device.
@@ -331,7 +331,7 @@ def get_latest_data(device_name):
     return {'status': 'Device not ready'}, 404
 
 
-@data_blueprint.route('/kafka_stream/<device_name>', methods=['GET'])
+@data_blueprint.route('/kafka-stream/<device_name>', methods=['GET'])
 def subscribe_to_device(device_name):
     """
     This allows client to get the data stream of a single device.

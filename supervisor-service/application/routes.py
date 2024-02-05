@@ -72,7 +72,7 @@ def resume_device():
     return result, status_code
 
 
-@control_blueprint.route("/change_rate", methods=['POST'])
+@control_blueprint.route("/change-rate", methods=['POST'])
 def change_rate():
     """
     Change the rate of a device given its ID, port, IP address, and the desired rate.

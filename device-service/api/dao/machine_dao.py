@@ -56,7 +56,7 @@ class MachineDAO:
         if isinstance(machine_identifier, int):
             machine_overview = MachineOverview.query.get(machine_identifier)
         elif isinstance(machine_identifier, str):
-            machine_overview = MachineOverview.query.filter_by(name=machine_identifier).first()
+            machine_overview = MachineOverview.query.filter_by(machine_name=machine_identifier).first()
         else:
             raise ValueError('machine_identifier must be either an id or a name')
         return machine_overview
@@ -66,7 +66,7 @@ class MachineDAO:
         if isinstance(machine_identifier, int):
             machine_overview_to_update = MachineOverview.query.get(machine_identifier)
         elif isinstance(machine_identifier, str):
-            machine_overview_to_update = MachineOverview.query.filter_by(name=machine_identifier).first()
+            machine_overview_to_update = MachineOverview.query.filter_by(machine_name=machine_identifier).first()
         else:
             raise ValueError('machine_identifier must be either an id or a name')
 
@@ -85,7 +85,7 @@ class MachineDAO:
         if isinstance(machine_identifier, int):
             machine_result = MachineResult.query.get(machine_identifier)
         elif isinstance(machine_identifier, str):
-            machine_result = MachineResult.query.filter_by(name=machine_identifier).first()
+            machine_result = MachineResult.query.filter_by(machine_name=machine_identifier).first()
         else:
             raise ValueError('machine_identifier must be either an id or a name')
         return machine_result
