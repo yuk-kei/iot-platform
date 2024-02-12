@@ -43,6 +43,21 @@ class SensorRegistrationSchema(ma.Schema):
    Attributes = fields.List(fields.Nested(RegistrationAttributeSchema))
    Urls = fields.List(fields.Nested(RegistrationUrlSchema))
 
+class SensorUpdateSchema(ma.Schema):
+   name = fields.Str()
+   frequency = fields.Float(allow_none=True)
+   category = fields.Str(allow_none=True)
+   sensor_type = fields.Str(allow_none=True)
+   sensor_vendor = fields.Str(allow_none=True)
+   vendor_pid = fields.Str(allow_none=True)
+   chip = fields.Str(allow_none=True)
+   rpi_name = fields.Str(allow_none=True)
+   rpi_id = fields.Int(allow_none=True)
+   is_key_sensor = fields.Int(allow_none=True)
+   machine_list = fields.List(fields.Str(allow_none=True))
+   Attributes = fields.List(fields.Nested(RegistrationAttributeSchema))
+   Urls = fields.List(fields.Nested(RegistrationUrlSchema))
+
 
 class SensorSchema(ma.SQLAlchemySchema):
    class Meta:
@@ -105,6 +120,7 @@ class SensorDetailsSchema(ma.Schema):
 if __name__ == "__main__":
    # Example instance of SensorSchema
    sensor_schema = SensorSchema()
+   update_schema = SensorUpdateSchema()
 
    # Test data matching the structure of SensorSchema
    test_sensor_data = {
@@ -120,8 +136,20 @@ if __name__ == "__main__":
       'rpi_id': 789
    }
 
+   update_test = {
+      'name': 'TemperatureSensor',
+      'category': 'Environmental',
+      'frequency': 5.5,
+      'sensor_type': 'Thermometer',
+      'sensor_vendor': 'SensorTech Inc.',
+      'vendor_pid': 'ST-001',
+      'chip': 'ChipModelX',
+      'rpi_id': 789
+   }
+
    # Serializing the test data
    serialized_data = sensor_schema.dump(test_sensor_data)
+   serialized_data_update = update_schema.dump(update_test)
 
    # Printing the serialized data
    print(serialized_data)

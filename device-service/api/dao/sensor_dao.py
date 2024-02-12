@@ -156,6 +156,44 @@ class SensorDAO:
             })
         return sensor_details, total
 
+    def update(sensor_identifier, update_data):
+        if isinstance(sensor_identifier, int):
+            sensor_overview_to_update = Sensor.query.get(sensor_identifier)
+            sensor_attribute_update = Attribute.query.filter_by(sensor_id=sensor_identifier)
+            sensor_url_update = Url.query.filter_by(sensor_id=sensor_identifier)
+        elif isinstance(sensor_identifier, str):
+            sensor_overview_to_update = Sensor.query.filter_by(name=sensor_identifier).first()
+            sensor_attribute_update = Attribute.query.filter_by(sensor_name=sensor_identifier)
+            sensor_url_update = Url.query.filter_by(sensor_name=sensor_identifier)
+        else:
+            raise ValueError('machine_identifier must be either an id or a name')
+
+        if sensor_overview_to_update:
+            # Update attributes
+            for key, value in update_data.items():
+                if hasattr(sensor_overview_to_update, key):
+                    setattr(sensor_overview_to_update, key, value)
+            if sensor_attribute_update:
+                for attribute in sensor_attribute_update:
+                    if 'name' in update_data:
+                        setattr(attribute, 'sensor_name', update_data.get('name', None))
+                    if 'attribute_name' in update_data:
+                        setattr(attribute, 'attribute', update_data.get('attribute_name', None))
+                    if 'is_key_attribute' in update_data:
+                        setattr(attribute, 'is_key_attribute', update_data.get('is_key_attribute', None))
+            if sensor_url_update:
+                for url in sensor_url_update:
+                    if 'name' in update_data:
+                        setattr(url, 'sensor_name', update_data.get('name', None))
+                    if hasattr(url, key):
+                        setattr(url, key, value)
+
+            # Commit changes to the database
+
+            db.session.commit()
+            return sensor_overview_to_update
+        return None
+
 
 def next_short_id():
     """

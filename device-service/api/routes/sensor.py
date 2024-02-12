@@ -1,12 +1,13 @@
 from flask import Blueprint, request, jsonify
 from apifairy import body, response
 from ..dao.sensor_dao import SensorDAO
-from ..schemas.sensor_schema import SensorRegistrationSchema, SensorSchema, SensorDetailsSchema
+from ..schemas.sensor_schema import SensorRegistrationSchema, SensorSchema, SensorDetailsSchema, SensorUpdateSchema
 
 sensor_blueprint = Blueprint('sensors', __name__, url_prefix="/api/v1/sensors")
 
 sensors_schema = SensorSchema(many=True)
 detail_schema = SensorDetailsSchema(many=True)
+update_schema = SensorUpdateSchema()
 
 
 @sensor_blueprint.route('/', methods=['GET'])
@@ -60,3 +61,15 @@ def get_key_attribute():
                                                 attr_key_level=attr_key_level)
     return jsonify(key_attribute)
 
+@sensor_blueprint.route('/<sensor_identifier>/result', methods=['PUT'])
+@body(update_schema)
+@response(SensorSchema, 201)
+def update_sensor_result(*args, sensor_identifier):
+    sensor_info = request.get_json()
+    try:
+        # Attempt to convert to an integer
+        sensor_identifier = int(sensor_identifier)
+    except ValueError:
+        sensor_identifier = sensor_identifier
+    sensor_result = SensorDAO.update(sensor_identifier, sensor_info)
+    return sensor_result
