@@ -47,6 +47,7 @@ def create_sensor(param=None):
                               urls=urls)
     return sensor, 201
 
+
 @sensor_blueprint.route('/key-attribute', methods=['GET'])
 def get_key_attribute():
     sensor_identifier = request.args.get('sensor_identifier', None)
