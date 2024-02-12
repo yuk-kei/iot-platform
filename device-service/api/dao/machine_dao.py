@@ -157,12 +157,12 @@ class MachineDAO:
             query = (db.session
                      .query(Sensor)
                      .join(MachineSensorMap, Sensor.sensor_id == MachineSensorMap.sensor_id)
-                     .filter(MachineSensorMap.machine_id == machine_identifier, MachineSensorMap.is_key_sensor == 1))
+                     .filter(MachineSensorMap.machine_id == machine_identifier, MachineSensorMap.is_key_sensor >= 1))
         elif isinstance(machine_identifier, str):
             query = (db.session
                      .query(Sensor)
                      .join(MachineSensorMap, Sensor.sensor_id == MachineSensorMap.sensor_id)
-                     .filter(MachineSensorMap.machine_name == machine_identifier, MachineSensorMap.is_key_sensor == 1))
+                     .filter(MachineSensorMap.machine_name == machine_identifier, MachineSensorMap.is_key_sensor >= 1))
         else:
             raise ValueError('machine_identifier must be either an id or a name')
 

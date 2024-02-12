@@ -58,4 +58,5 @@ class KeySensorsSchema(ma.Schema):
    attributes = fields.List(fields.Nested(DetailsAttributesSchema))
    category = fields.Str()
    id = fields.Int()
+   name = fields.Str()
    urls = fields.Nested(DetailsURLSchema)

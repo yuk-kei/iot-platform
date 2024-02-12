@@ -199,23 +199,32 @@ class InfluxDataHandler:
                 for i, records in enumerate(table.records):
 
                     if i % frequency == 0:
-
-                        time = records.get_time().astimezone(self.time_zone) if use_local_time else records.get_time()
+                        time = records.get_time()
                         formatted_time = time.strftime("%Y-%m-%d %H:%M:%S.%f") if not iso_format else time.isoformat()
 
                         if formatted_time not in result_dict:
                             result_dict[formatted_time] = {}
+
+                        if use_local_time:
+                            local_time = time.astimezone(self.time_zone) if use_local_time else records.get_time()
+                            formatted_local_time = local_time.strftime("%Y-%m-%d %H:%M:%S.%f") if not iso_format else local_time.isoformat()
+                            result_dict[formatted_time]["local_time"] = formatted_local_time
+
                         result_dict[formatted_time][records["_field"]] = records.get_value()
         else:
             for table in result:
                 for records in table.records:
 
-                    time = records.get_time().astimezone(self.time_zone) if use_local_time else records.get_time()
-
+                    time = records.get_time()
                     formatted_time = time.strftime("%Y-%m-%d %H:%M:%S.%f") if not iso_format else time.isoformat()
 
                     if formatted_time not in result_dict:
                         result_dict[formatted_time] = {}
+                    if use_local_time:
+                        local_time = time.astimezone(self.time_zone)
+                        formatted_local_time = local_time.strftime("%Y-%m-%d %H:%M:%S.%f") if not iso_format else local_time.isoformat()
+                        result_dict[formatted_time]["local_time"] = formatted_local_time
+
                     result_dict[formatted_time][records["_field"]] = records.get_value()
 
         return result_dict

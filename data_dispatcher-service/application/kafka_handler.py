@@ -181,12 +181,15 @@ class KafkaStreamHandler:
             if msg:
                 try:
                     msg_json = json.loads(msg.value().decode('utf-8'))
+                    msg_json['values'] = flatten_json(msg_json['values'])
                     device_name = msg_json.get("device_name", "")
                     identifier = msg_json.get("identifier", "")
                     if device_name:
                         if identifier:
                             device_name = f"{device_name}_{identifier}"
-                        if device_name in self.data and str(msg_json.get('time')) > str(self.data[device_name].get('time')):
+                        if device_name in self.data and str(msg_json.get('time')) > str(
+                                self.data[device_name].get('time')):
+                            # flatten the json
                             self.data[device_name] = msg_json
                             self.flag[device_name] += 1
                             if self.flag[device_name] > 100:
@@ -201,8 +204,6 @@ class KafkaStreamHandler:
             sleep(0)
 
         kafka_service.close()
-
-
 
     def get_latest_data_for_single(self, device_name):
         """
@@ -390,3 +391,17 @@ def on_assign(consumer, partitions):
     for p in partitions:
         p.offset = -1
     consumer.assign(partitions)
+
+
+def flatten_json(input_json):
+    out = {}
+
+    def flatten(x, name=''):
+        if type(x) is dict:
+            for a in x:
+                flatten(x[a], name + a + '_')
+        else:
+            out[name[:-1]] = x
+
+    flatten(input_json)
+    return out
