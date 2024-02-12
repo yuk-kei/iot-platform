@@ -167,10 +167,7 @@ class SensorDAO:
             sensor_url_update = Url.query.filter_by(sensor_name=sensor_identifier)
         else:
             raise ValueError('machine_identifier must be either an id or a name')
-        print("query results:")
-        print(sensor_overview_to_update)
-        print(sensor_attribute_update)
-        print(sensor_url_update)
+
         if sensor_overview_to_update:
             # Update attributes
             for key, value in update_data.items():
@@ -185,8 +182,6 @@ class SensorDAO:
                     if 'is_key_attribute' in update_data:
                         setattr(attribute, 'is_key_attribute', update_data.get('is_key_attribute', None))
             if sensor_url_update:
-                print("url")
-                print(sensor_url_update)
                 for url in sensor_url_update:
                     if 'name' in update_data:
                         setattr(url, 'sensor_name', update_data.get('name', None))

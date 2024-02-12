@@ -61,7 +61,7 @@ def get_key_attribute():
                                                 attr_key_level=attr_key_level)
     return jsonify(key_attribute)
 
-@sensor_blueprint.route('/<sensor_identifier>/result', methods=['POST'])
+@sensor_blueprint.route('/<sensor_identifier>/result', methods=['PUT'])
 @body(update_schema)
 @response(SensorSchema, 201)
 def update_sensor_result(*args, sensor_identifier):
