@@ -47,17 +47,28 @@ def create_sensor(param=None):
                               urls=urls)
     return sensor, 201
 
-@sensor_blueprint.route('/<sensor_identifier>/result', methods=['POST'])
-@body(update_schema)
-@response(SensorSchema, 201)
-def update_sensor_result(*args, sensor_identifier):
-    sensor_info = request.get_json()
-    print("hello")
+@sensor_blueprint.route('/key-attribute', methods=['GET'])
+def get_key_attribute():
+    sensor_identifier = request.args.get('sensor_identifier', None)
+    attr_key_level = request.args.get('attr_key_level', None)
     try:
         # Attempt to convert to an integer
         sensor_identifier = int(sensor_identifier)
     except ValueError:
         sensor_identifier = sensor_identifier
-    print(sensor_identifier)
+    key_attribute = SensorDAO.get_key_attribute(sensor_identifier=sensor_identifier,
+                                                attr_key_level=attr_key_level)
+    return jsonify(key_attribute)
+
+@sensor_blueprint.route('/<sensor_identifier>/result', methods=['POST'])
+@body(update_schema)
+@response(SensorSchema, 201)
+def update_sensor_result(*args, sensor_identifier):
+    sensor_info = request.get_json()
+    try:
+        # Attempt to convert to an integer
+        sensor_identifier = int(sensor_identifier)
+    except ValueError:
+        sensor_identifier = sensor_identifier
     sensor_result = SensorDAO.update(sensor_identifier, sensor_info)
     return sensor_result
