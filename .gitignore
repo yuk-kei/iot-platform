@@ -97,5 +97,8 @@ data_dispatcher-service/*.out
 **/access.log
 **/.env
 **/.flaskenv
+**/nohup.out
+**/kafka-dispatcher.pid
+**/*.pid
 ### DS_store
 **/.DS_Store
