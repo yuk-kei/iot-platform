@@ -83,7 +83,7 @@ def update_machine_result(machine_identifier):
 @response(all_machines, 200)
 def get_all_machines():
     page = request.args.get('page', default=1, type=int)
-    per_page = request.args.get('per_page', default=10, type=int)
+    per_page = request.args.get('per_page', default=50, type=int)
 
     machines, total_pages, total = MachineDAO.get_all(page, per_page)
     # machines, total_pages, total = MachineService.get_all(page, per_page)
@@ -105,7 +105,7 @@ def get_sensors_from_machine(machine_identifier):
         machine_identifier = machine_identifier
 
     page = request.args.get('page', default=1, type=int)
-    per_page = request.args.get('per_page', default=30, type=int)
+    per_page = request.args.get('per_page', default=50, type=int)
     sensors, total = MachineDAO.get_sensors(machine_identifier, page, per_page)
 
     return {'sensors': [s.to_dict()
@@ -123,7 +123,7 @@ def get_key_sensors_from_machine(machine_identifier):
         machine_identifier = machine_identifier
 
     page = request.args.get('page', default=1, type=int)
-    per_page = request.args.get('per_page', default=30, type=int)
+    per_page = request.args.get('per_page', default=50, type=int)
     key_sensors, total = MachineDAO.get_key_sensors(machine_identifier, page, per_page)
     # key_sensors, total = MachineService.get_key_sensors(machine_id, page, per_page)
 

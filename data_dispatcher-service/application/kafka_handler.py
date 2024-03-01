@@ -67,7 +67,7 @@ class KafkaService:
         :doc-author: Yukkei
         """
 
-        return self.consumer.poll(timeout=1)
+        return self.consumer.poll(timeout=10)
 
     def batch_consume(self, batch_size=50):
         """
@@ -145,6 +145,11 @@ class KafkaService:
         except Exception as e:
             print(f"Error closing Kafka consumer: {e}")
 
+    def reset_consumer(self):
+        """Method to reset the Kafka consumer."""
+        self.close()  # Close the current consumer
+        self.consumer = Consumer(self.config)  # Reinitialize the consumer
+
 
 class KafkaStreamHandler:
     """
@@ -177,6 +182,7 @@ class KafkaStreamHandler:
         while self.running:
 
             msg = kafka_service.consume()
+            no_message_counter = 0
             # print("message received")
             if msg:
                 try:
@@ -198,9 +204,15 @@ class KafkaStreamHandler:
                             self.data[device_name] = msg_json
                             self.flag[device_name] = 0
                 except Exception as e:
+                    kafka_service.reset_consumer()
+                    kafka_service.subscribe(['sensor_data', 'ml_result', 'slb_out'])
                     print(f"Error: {e}")
             else:
-                print("No message received")
+                no_message_counter += 1
+                print("No message received: ", no_message_counter)
+                if no_message_counter > 60:
+                    kafka_service.reset_consumer()
+                    kafka_service.subscribe(['sensor_data', 'ml_result', 'slb_out'])
             sleep(0)
 
         kafka_service.close()

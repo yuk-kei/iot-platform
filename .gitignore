@@ -90,7 +90,12 @@ data_dispatcher-service/application/test
 data_dispatcher-service/.env
 data_dispatcher-service/*.pid
 data_dispatcher-service/*.out
-/nohup.out
 
+/nohup.out
+**/run_pid.txt
+**/error.log
+**/access.log
+**/.env
+**/.flaskenv
 ### DS_store
 **/.DS_Store

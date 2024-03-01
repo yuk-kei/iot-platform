@@ -1,6 +1,8 @@
 import io
+import logging
+import requests
 
-from flask import Blueprint, request, jsonify, Response, current_app
+from flask import Blueprint, request, jsonify, Response, current_app, stream_with_context
 
 from .data_handler import InfluxDataHandler
 from .kafka_handler import KafkaService, KafkaStreamHandler
@@ -25,10 +27,10 @@ from .kafka_handler import KafkaService, KafkaStreamHandler
 data_blueprint = Blueprint('data', __name__, url_prefix="/api/data")
 
 influx_handler = InfluxDataHandler()
-kafka_service = KafkaService()
+# kafka_service = KafkaService()
 # kafka_service.subscribe(['sensor_data'])
-kafka_handler = KafkaStreamHandler()
-kafka_handler.start()
+# kafka_handler = KafkaStreamHandler()
+# kafka_handler.start()
 
 
 @data_blueprint.route('/test')
@@ -56,6 +58,9 @@ def query_influx_data():
     :return: A json response containing the queried data.
     :doc-author: Yukkei
     """
+    endpoint = request.endpoint
+    remote_ip = request.remote_addr
+    print(f"Received a POST request on endpoint {endpoint} from IP {remote_ip}")
     if request.method == 'POST':
         current_app.logger.info(f"Received a POST request: {request.get_json()}")
         field_name = request.json.get('field_name')
@@ -128,6 +133,9 @@ def get_csv():
     :return: A csv file containing the queried data.
     :doc-author: Yukkei
     """
+    endpoint = request.endpoint
+    remote_ip = request.remote_addr
+    print(f"Received a POST request on endpoint {endpoint} from IP {remote_ip}")
     if request.method == 'POST':
         field_name = request.json.get('field_name', "measurement")
         field_value = request.json.get('field_value')
@@ -254,58 +262,22 @@ def get_latest_data_all():
     :return: The latest data for all the sensors in the kafka stream
     :doc-author: Yukkei
     """
-    global kafka_service
-    global kafka_handler
+    kafka_latest_url = current_app.config["KAFKA_DISPATCHER_URL"] + "/latest"
 
-    if not kafka_handler.running:
-        return {'status': 'No stream running'}
+    try:
+        # Send a GET request to the external service
+        response = requests.get(kafka_latest_url, timeout=10)  # Adding a timeout for good practice
 
-    message = kafka_handler.get_latest_data_for_all()
-    return message
-
-
-@data_blueprint.route('/kafka-stream/stop', methods=['GET'])
-def stop_stream_endpoint():
-    """
-    Stop the service that could get the latest data from the kafka stream.
-        ---
-        tags: [stream]
-        responses:
-            200:  # HTTP status code 200 indicates success! :)
-                description: Stream stopped successfully.
-
-    :return: A dictionary with a status key
-    :doc-author: Yukkei
-    """
-    global kafka_service
-    global kafka_handler
-    if kafka_handler.running:
-        kafka_handler.stop()
-        kafka_handler.running = False
-        return {'status': 'Stream stopped'}
-    else:
-        return {'status': 'Stream already stopped'}
-
-
-@data_blueprint.route('/kafka-stream/status', methods=['GET'])
-def stream_status_endpoint():
-    """
-    Check whether we can retrieve data from the kafka stream.
-        ---
-        tags: [stream]
-        responses:
-            200:
-                description: Returns a JSON object with the status of the stream handler.
-
-    :return: A dictionary with the status of the stream
-    :doc-author: Yukkei
-    """
-    global kafka_service
-    global kafka_handler
-    if kafka_handler.running:
-        return {'status': 'Stream running'}
-    else:
-        return {'status': 'Stream stopped'}
+        # Check if the request was successful
+        if response.status_code == 200:
+            # You could directly return the JSON from the external service
+            return jsonify(response.json()), 200
+        else:
+            # Return an error message if the external service fails
+            return jsonify({"error": "Failed to retrieve data from the external service."}), response.status_code
+    except requests.RequestException as e:
+        # Handle exceptions from the requests library
+        return jsonify({"error": str(e)}), 500
 
 
 @data_blueprint.route('/kafka-stream/latest/<string:device_name>', methods=['GET'])
@@ -319,44 +291,44 @@ def get_latest_data(device_name):
     :return: The latest data for a device
     :doc-author: Yukkei
     """
-    global kafka_service
-    global kafka_handler
+    kafka_single_url = current_app.config["KAFKA_DISPATCHER_URL"] + "/latest/" + device_name
 
-    if not kafka_handler.running:
-        return {'status': 'No stream running'}
+    try:
+        # Send a GET request to the external service
+        response = requests.get(kafka_single_url, timeout=10)  # Adding a timeout for good practice
 
-    if device_name in kafka_handler.data and device_name in kafka_handler.flag:
-        message = kafka_handler.get_latest_data_for_single(str(device_name))
-        return message, 200
-    return {'status': 'Device not ready'}, 404
+        # Check if the request was successful
+        if response.status_code == 200:
+            # You could directly return the JSON from the external service
+            return jsonify(response.json()), 200
+        else:
+            # Return an error message if the external service fails
+            return jsonify({"error": "Failed to retrieve data from the external service."}), response.status_code
+    except requests.RequestException as e:
+        # Handle exceptions from the requests library
+        return jsonify({"error": str(e)}), 500
 
 
 @data_blueprint.route('/kafka-stream/<device_name>', methods=['GET'])
 def subscribe_to_device(device_name):
     """
-    This allows client to get the data stream of a single device.
-    The function takes in the name of the device as an argument and returns a response object containing
-    information about whether there is currently an active stream running, and if so,
-    it will stream the latest data from that particular device.
-
-    It also takes in an optional argument called frequency, which specifies the frequency of the data stream.
-    If no frequency is specified, the default frequency is 0,
-    which means that the stream will be sampling base on the rate of the data being sent to the kafka.
-    If the data rate is too high, it is recommended to specify a frequency to down sample the stream.
-
-    :param device_name: Specify the device to subscribe to
-    :return: A response that contains the stream of data
-    :doc-author: Yukkei
+    Streams the latest data for a specific device from an external service.
+    Args:
+        device_name (str): The name of the device to stream data for.
     """
-    global kafka_service
-    global kafka_handler
-    frequency = int(request.args.get('frequency', default=0))
-    if not kafka_handler.running:
-        return {'status': 'No stream running'}
+    kafka_stream_url = current_app.config["KAFKA_DISPATCHER_URL"] + "/" + device_name
 
-    current_app.logger.info(f"Subscribing to {device_name} with frequency {frequency}")
-    response = Response(kafka_handler.get_latest_data_stream(device_name, frequency), content_type='text/event-stream')
-    response.headers['Cache-Control'] = 'no-cache'
-    response.headers['Connection'] = 'keep-alive'
+    def generate():
+        with requests.get(kafka_stream_url, stream=True) as r:
+            # Check if the request was successful
+            if r.status_code == 200:
+                # Stream the response content, chunk by chunk
+                for chunk in r.iter_content(chunk_size=4096):
+                    yield chunk
+            else:
+                # Handle error, maybe log it or yield an error message
+                yield f"Error: Failed to retrieve data, status code {r.status_code}\n".encode('utf-8')
 
-    return response
+    # Create a streaming response with the generator and set the content type
+    # Adjust the content type according to the data format you're streaming
+    return Response(stream_with_context(generate()), content_type='text/event-stream')

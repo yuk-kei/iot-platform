@@ -14,7 +14,7 @@ update_schema = SensorUpdateSchema()
 @response(sensors_schema, 200)
 def get_sensors():
     page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 50, type=int)
+    per_page = request.args.get('per_page', 200, type=int)
     sensors, total_items = SensorDAO.get_all(page, per_page)
 
     return sensors
@@ -24,7 +24,7 @@ def get_sensors():
 @response(detail_schema, 200)
 def get_sensors_details():
     page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 50, type=int)
+    per_page = request.args.get('per_page', 200, type=int)
     sensors, total_items = SensorDAO.get_all_details(page, per_page)
     print(type(sensors))
     return sensors

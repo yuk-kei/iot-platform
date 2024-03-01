@@ -87,6 +87,13 @@ class SensorDAO:
             return Sensor.query.filter_by(name=sensor_identifier).first()
 
     @staticmethod
+    def get_single_details(sensor_identifier):
+        if isinstance(sensor_identifier, int):
+            return Sensor.query.get(sensor_identifier)
+        elif isinstance(sensor_identifier, str):
+            return Sensor.query.filter_by(name=sensor_identifier).first()
+
+    @staticmethod
     def get_all_attributes(sensor_id, page=None, per_page=30):
         if page is None:
             return Attribute.query.get(sensor_id).attributes

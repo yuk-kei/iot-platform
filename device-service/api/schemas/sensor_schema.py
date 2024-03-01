@@ -1,5 +1,5 @@
 from marshmallow import validate, fields, validates, validates_schema, \
-   ValidationError, post_dump
+   ValidationError, post_dump, pre_load
 from api import ma, db
 from api.models.sensor import Sensor
 from api.models.lab import Lab
@@ -109,7 +109,13 @@ class SensorDetailsSchema(ma.Schema):
    machine_name = fields.Str(allow_none=True)
    name = fields.Str()
    attributes = fields.List(fields.Nested(DetailsAttributesSchema))
-   urls = fields.Nested(DetailsURLSchema)
+   urls = fields.Dict(keys=fields.Str(), values=fields.Str(), allow_none=True)
+   # urls = fields.Nested(DetailsURLSchema)
+   @pre_load
+   def handle_empty_urls(self, data, **kwargs):
+      if 'urls' in data and data['urls'] is None:
+         data['urls'] = []  # Convert None to an empty list for consistent handling
+      return data
 
 
 # class SensorListResponseSchema(Schema):

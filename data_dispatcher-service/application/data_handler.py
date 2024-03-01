@@ -1,4 +1,6 @@
 import os
+import time
+
 import gevent
 import pytz
 import pandas as pd
@@ -164,8 +166,8 @@ class InfluxDataHandler:
             # continuously stream data
             data = self.search_data_influxdb(field_name, field_value, time_interval)
             data = self.format_results(data)
-            gevent.sleep(rate)
-
+            # gevent.sleep(rate)
+            time.sleep(rate)
             yield f'data:{data}\n\n'
 
     def query_measurements(self, query):

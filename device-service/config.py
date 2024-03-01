@@ -33,6 +33,11 @@ class DevelopmentConfig(BaseConfig):
     DEBUG = True
     # SQLALCHEMY_DATABASE_URI = 'mysql://root:0818@localhost:3306/fabwork'
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL')
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,
+        # Set pool_recycle to 25200 seconds (7 hours), slightly less than MySQL's wait_timeout
+        "pool_recycle": 25200,
+    }
     # raw_sql_config = {
     #     'user': ,
     #     'password': 'password',

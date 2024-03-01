@@ -19,6 +19,8 @@ class BaseConfig:
     DEVICES_MANAGER_PORT = os.environ.get('DEVICES_MANAGER_PORT')
     DATA_DISPATCHER_PORT = os.environ.get('DATA_WIZARD_PORT')
     SYS_CONTROL_PORT = os.environ.get('SYS_CONTROL_PORT')
+    KAFKA_DISPATCHER_PORT = os.environ.get('KAFKA_DISPATCHER_PORT')
+    KAFKA_DISPATCHER_URL = os.environ.get('KAFKA_DISPATCHER_URL')
 
 
 class DevelopmentConfig(BaseConfig):
@@ -28,7 +30,7 @@ class DevelopmentConfig(BaseConfig):
     :param DEBUG: Indicates whether debugging should be enabled.
     :param SQLALCHEMY_DATABASE_URI: URI for the development database.
     """
-    DEBUG = True
+    DEBUG = False
     # SQLALCHEMY_DATABASE_URI = 'mysql://root:0818@localhost:3306/fabwork'
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL')
 
