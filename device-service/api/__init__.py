@@ -43,7 +43,7 @@ def create_app():
     app.register_blueprint(sensor_blueprint)
 
     with app.app_context():
-        # from .routes.sensor_routes import sensor_blueprint
+        # from .api.sensor_routes import sensor_blueprint
         from .routes.machine_routes import machine_blueprint
         from .routes.lab_routes import lab_blueprint
         # from .auth import auth_blueprint

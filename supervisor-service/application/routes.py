@@ -4,7 +4,7 @@ from .models import DeviceInfo
 """
 Device Control API Endpoints
 
-This module defines a set of routes that serve as the API endpoints for system control operations.
+This module defines a set of api that serve as the API endpoints for system control operations.
 It enables clients to interact with devices by providing functionalities such as pausing,
 resuming, and changing the rate of a device. Each route corresponds to a specific action
 and requires certain parameters, like device ID, port, and IP address, to execute the action.

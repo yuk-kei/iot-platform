@@ -11,7 +11,7 @@ def create_app():
     """
     app = Flask(__name__)
 
-    CORS(app)  # Allow CORS for all domains on all routes
+    CORS(app)  # Allow CORS for all domains on all api
     app.config.from_object('config.DevelopmentConfig')
 
     from .routes import kafka_blueprint

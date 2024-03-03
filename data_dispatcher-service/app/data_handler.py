@@ -1,13 +1,12 @@
 import os
 import time
 
-import gevent
 import pytz
 import pandas as pd
 
 from influxdb_client.client import influxdb_client
+from .utils import time_or_time_delta
 
-from dateutil.parser import parse
 
 """
 This module provides a class to handle data from InfluxDB.
@@ -39,13 +38,115 @@ class InfluxDataHandler:
         self.client = influxdb_client.InfluxDBClient(
             url=os.environ.get('INFLUX_URL'),
             token=os.environ.get('INFLUX_TOKEN'),
-            org=os.environ.get('INFLUX_ORG')
+            org=os.environ.get('INFLUX_ORG'),
+            timeout= 180 * 1000
         ) if client is None else client
 
         self.write_api = self.client.write_api()
         self.query_api = self.client.query_api()
         self.bucket_name = os.environ.get('INFLUX_BUCKET') if bucket is None else bucket
         self.time_zone = pytz.timezone('America/Los_Angeles')
+
+    def query_as_dataframe(self, field_name, field_value, start_time_str, end_time_str="0h", frequency=None,
+                           is_latest=None):
+        """The search_data_influxdb function searches the InfluxDB database for a specific field value.
+
+        :param field_name: Specify the field that is being searched for
+        :param field_value: Filter the data
+        :param start_time_str: Specify the start time of the query
+        :param end_time_str: Specify the end time of the query
+        :return: dataframe
+        :doc-author: Yukkei
+        """
+        start_time = time_or_time_delta(start_time_str)
+        end_time = time_or_time_delta(end_time_str)
+
+        if field_name == "field" or field_name == "measurement" or field_name == "value":
+            field_name = "_" + field_name
+
+        query = f'import "experimental"' \
+                f'from(bucket: "{self.bucket_name}") ' \
+                f'|> range(start: {start_time}, stop:{end_time})' \
+                f'|> filter(fn: (r) => r["{field_name}"] == "{field_value}")'
+
+        if frequency is not None:
+            frequency = time_or_time_delta(frequency)
+            query += f'|> window(every: {frequency})' \
+                     f'|> last()'
+        if not frequency and is_latest:
+            query += f'|> last()'
+
+        query += f'|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")' \
+                 f'|> drop(columns:["_start", "_stop", "host", "id", "output", "_measurement"])'
+
+        result = self.query_api.query_data_frame(query)
+        if result.empty:
+            return
+        result.drop(columns=["result", "table"], inplace=True)
+
+        result['_time'] = pd.to_datetime(result['_time'])
+
+        result.rename(columns={'_time': 'time'}, inplace=True)
+        return result
+
+    def df_to_csv(self, results_df, iso_format=False):
+        # Convert '_time' from UTC to Los Angeles time
+        if results_df['time'].dt.tz is None:
+            results_df['time'] = results_df['time'].dt.tz_localize('UTC')  # Assuming the times are in UTC; adjust if necessary
+        results_df['local_time'] = results_df['time'].dt.tz_convert(self.time_zone)
+        column_order = ['time', 'local_time'] + [col for col in results_df.columns if
+                                                 col not in ['time', 'local_time']]
+        results_df = results_df.reindex(columns=column_order)
+        if not iso_format:
+            results_df['time'] = results_df['time'].dt.strftime("%Y-%m-%d %H:%M:%S.%f")
+            results_df['local_time'] = results_df['local_time'].dt.strftime("%Y-%m-%d %H:%M:%S.%f") \
+                if 'local_time' in results_df.columns else None
+
+        return results_df
+
+    def df_to_dict(self, results_df):
+        results_df['time'] = results_df['time'].dt.strftime("%Y-%m-%d %H:%M:%S.%f")
+        results_df.set_index('time', inplace=True)
+        return results_df.to_dict(orient='index')
+
+    def stream_data(self, field_name, field_value, rate=1):
+
+        """
+        The stream_data function is a generator that continuously streams data from the InfluxDB database.
+            The function takes in three arguments: field_name, field_value, and rate.
+            The field name and value are used to query the database for specific data points.
+            Rate is how often you want to stream new data from the database (in seconds).
+
+        :param self: Represent the instance of the class
+        :param field_name: Specify the field that we want to search for
+        :param field_value: Specify the value of the field_name parameter
+        :param rate: Control the speed of the stream
+        :param time_interval: Set the time interval for which data is fetched from influxdb
+        :return: A generator to stream data
+        :doc-author: Yukkei
+        """
+        time_interval = f"-{rate + 5}s"
+        while True:
+            # continuously stream data
+            data = self.query_as_dataframe(field_name, field_value, start_time_str=time_interval, is_latest=True)
+
+            if data is None:
+                time.sleep(int(rate))
+                continue
+
+            data = self.df_to_dict(data)
+            yield f'data:{data}\n\n'
+            time.sleep(int(rate))
+
+    def query_measurements(self, query):
+        """
+        Use to execute single query to influxdb, it is not recommended to direct use this function.
+        :param query: Pass the query to the function
+        :return: The result of the query
+        :doc-author: Yukkei
+        """
+
+        return self.query_api.query(query)
 
     def query_builder(self, query_dicts_list: list, start_time, end_time="0h", bucket_name=None):
 
@@ -107,79 +208,6 @@ class InfluxDataHandler:
 
         return result
 
-    def query_large_data(self, field_name, field_value, start_time, end_time="0h"):
-
-        """ The query_large_data function is used to query large data sets from the InfluxDB database.
-        The function takes in four arguments: field_name, field_value, start_time and end_time.
-        The first two arguments are used to filter the results of the query by a specific value
-        for a given field name (e.g., field_name == "field" or field_name == "measurement";).
-        The last two arguments are used to specify a time range for which we want our data returned from (e.g., '-2h' or '2020-07-01T00:00:00Z').
-
-        :param self: Represent the instance of the class
-        :param field_name: Specify which field in the database we want to query
-        :param field_value: Filter the data
-        :param start_time: Specify the start time for the query
-        :param end_time: Specify the end time of the query
-        :return: A generator to stream data
-        :doc-author: Yukkei
-        """
-        if field_name == "field" or field_name == "measurement" or field_name == "value":
-            field_name = "_" + field_name
-
-        query = f'from(bucket: "{self.bucket_name}") ' \
-                f'|> range(start: {start_time}, stop:{end_time})' \
-                f'|> filter(fn: (r) => r["{field_name}"] == "{field_value}")'
-
-        large_stream = self.query_api.query_stream(query)
-
-        for record in large_stream:
-            local_time = record["_time"].astimezone()
-            result_dict = {
-                "time": local_time.strftime("%Y-%m-%d %H:%M:%S.%f"),
-                # "measurement": records["_measurement"],
-                "field": record["_field"],
-                "value": record["_value"]
-            }
-
-            yield f'data:{result_dict}\n\n'
-
-        large_stream.close()
-
-    def stream_data(self, field_name, field_value, rate=3, time_interval=3):
-
-        """
-        The stream_data function is a generator that continuously streams data from the InfluxDB database.
-            The function takes in three arguments: field_name, field_value, and rate.
-            The field name and value are used to query the database for specific data points.
-            Rate is how often you want to stream new data from the database (in seconds).
-
-        :param self: Represent the instance of the class
-        :param field_name: Specify the field that we want to search for
-        :param field_value: Specify the value of the field_name parameter
-        :param rate: Control the speed of the stream
-        :param time_interval: Set the time interval for which data is fetched from influxdb
-        :return: A generator to stream data
-        :doc-author: Yukkei
-        """
-        time_interval = f"-{time_interval}s"
-        while True:
-            # continuously stream data
-            data = self.search_data_influxdb(field_name, field_value, time_interval)
-            data = self.format_results(data)
-            # gevent.sleep(rate)
-            time.sleep(rate)
-            yield f'data:{data}\n\n'
-
-    def query_measurements(self, query):
-        """
-        Use to execute single query to influxdb, it is not recommended to direct use this function.
-        :param query: Pass the query to the function
-        :return: The result of the query
-        :doc-author: Yukkei
-        """
-
-        return self.query_api.query(query)
-
     def format_results(self, result, frequency=None, use_local_time=False, iso_format=False):
         """
         The to_dict function takes the result of a query and converts it into a list of dictionaries.
@@ -209,7 +237,8 @@ class InfluxDataHandler:
 
                         if use_local_time:
                             local_time = time.astimezone(self.time_zone) if use_local_time else records.get_time()
-                            formatted_local_time = local_time.strftime("%Y-%m-%d %H:%M:%S.%f") if not iso_format else local_time.isoformat()
+                            formatted_local_time = local_time.strftime(
+                                "%Y-%m-%d %H:%M:%S.%f") if not iso_format else local_time.isoformat()
                             result_dict[formatted_time]["local_time"] = formatted_local_time
 
                         result_dict[formatted_time][records["_field"]] = records.get_value()
@@ -224,7 +253,8 @@ class InfluxDataHandler:
                         result_dict[formatted_time] = {}
                     if use_local_time:
                         local_time = time.astimezone(self.time_zone)
-                        formatted_local_time = local_time.strftime("%Y-%m-%d %H:%M:%S.%f") if not iso_format else local_time.isoformat()
+                        formatted_local_time = local_time.strftime(
+                            "%Y-%m-%d %H:%M:%S.%f") if not iso_format else local_time.isoformat()
                         result_dict[formatted_time]["local_time"] = formatted_local_time
 
                     result_dict[formatted_time][records["_field"]] = records.get_value()
@@ -247,32 +277,4 @@ class InfluxDataHandler:
         return df
 
 
-def time_or_time_delta(curr_time_str):
-    """
-    The time_or_time_delta function takes in a string and returns either the time delta or the time.
-        If it is a timedelta, then it will return that value.
-        If it is not, then we assume that this is an absolute timestamp and convert to seconds since epoch.
 
-    :param curr_time_str: Pass in the current time string
-    :return: A datetime object
-    :doc-author: Yukkei
-    """
-    if len(curr_time_str) == 1:
-        return "Invalid time format"
-    if curr_time_str[-1] == 'd':
-        return curr_time_str
-    elif curr_time_str[-1] == 'h':
-        return curr_time_str
-    elif curr_time_str[-1] == 'm':
-        return curr_time_str
-    elif curr_time_str[-1] == 's':
-        return curr_time_str
-
-    try:
-        target_time = parse(curr_time_str)
-
-        target_time_seconds = int(target_time.timestamp())
-        return target_time_seconds
-
-    except ValueError:
-        print(f"Error: unable to parse time string {curr_time_str}")

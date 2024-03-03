@@ -21,6 +21,10 @@ class BaseConfig:
     SYS_CONTROL_PORT = os.environ.get('SYS_CONTROL_PORT')
     KAFKA_DISPATCHER_PORT = os.environ.get('KAFKA_DISPATCHER_PORT')
     KAFKA_DISPATCHER_URL = os.environ.get('KAFKA_DISPATCHER_URL')
+    APIFAIRY_VERSION = '1.0'
+    DISABLE_AUTH = True
+    APIFAIRY_TITLE = os.environ.get('PROJECT_NAME', 'DATA DISPATCHER ENDPOINTS')
+    APIFAIRY_UI = os.environ.get('DOCS_UI', 'elements')
 
 
 class DevelopmentConfig(BaseConfig):
