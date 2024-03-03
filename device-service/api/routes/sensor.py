@@ -29,6 +29,21 @@ def get_sensors_details():
     print(type(sensors))
     return sensors
 
+@sensor_blueprint.route('<sensor_identifier>/overview', methods=['GET'])
+@response(update_schema, 200)
+def get_single_sensor(sensor_identifier):
+    try:
+        # Attempt to convert to an integer
+        sensor_identifier = int(sensor_identifier)
+    except ValueError:
+        sensor_identifier = sensor_identifier
+    sensor, list = SensorDAO.get_single_details(sensor_identifier)
+    result = vars(sensor)
+    if result:
+        result.pop('_sa_instance_state')
+        result['machine_list'] = list
+    return result
+
 
 @sensor_blueprint.route('/register', methods=['POST'])
 @body(SensorRegistrationSchema)

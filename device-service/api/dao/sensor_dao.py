@@ -89,9 +89,19 @@ class SensorDAO:
     @staticmethod
     def get_single_details(sensor_identifier):
         if isinstance(sensor_identifier, int):
-            return Sensor.query.get(sensor_identifier)
+            sensor = Sensor.query.get(sensor_identifier)
         elif isinstance(sensor_identifier, str):
-            return Sensor.query.filter_by(name=sensor_identifier).first()
+            sensor = Sensor.query.filter_by(name=sensor_identifier).first()
+        if sensor:
+            print("-----")
+            list = MachineSensorMap.query.filter_by(sensor_id=sensor.sensor_id).all()
+            machine_list = []
+            for mapping in list:
+                machine_list.append(mapping.machine_name)
+            return sensor, machine_list
+        return sensor
+
+
 
     @staticmethod
     def get_all_attributes(sensor_id, page=None, per_page=30):
