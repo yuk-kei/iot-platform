@@ -14,20 +14,24 @@ def parse_time_input(time_str):
 
         if unit == 'h':
             delta = timedelta(hours=value)
+        elif unit == 'm':
+            delta = timedelta(minutes=value)
         elif unit == 's':
             delta = timedelta(seconds=value)
+        elif unit == 'd':
+            delta = timedelta(days=value)
         else:
-            raise ValueError("Unsupported time unit. Only 'h' (hours) and 's' (seconds) are supported.")
+            raise ValueError("Unsupported time unit. Only 'd', 'h', 'm', and 's' are supported.")
 
         # Subtract the delta from the current UTC time
-        return datetime.utcnow() - delta
+        return datetime.now(timezone.utc) - delta
     else:
         # It's an absolute ISO format time
         result_time = datetime.fromisoformat(time_str)
         # If the datetime object is timezone-aware, convert it to UTC and make it naive
-        if result_time.tzinfo is not None:
-            result_time = result_time.astimezone(timezone.utc).replace(tzinfo=None)
-        return result_time
+        if result_time.tzinfo is None:
+            result_time = result_time.replace(tzinfo=timezone.utc)
+        return result_time.astimezone(timezone.utc)
 
 
 def time_or_time_delta(curr_time_str):
@@ -59,3 +63,9 @@ def time_or_time_delta(curr_time_str):
 
     except ValueError:
         print(f"Error: unable to parse time string {curr_time_str}")
+
+if __name__ == "__main__":
+
+    print(datetime.utcnow())
+    print(datetime.now())
+    print(parse_time_input("-10h"))

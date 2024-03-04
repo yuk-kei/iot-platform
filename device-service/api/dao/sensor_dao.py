@@ -52,7 +52,7 @@ class SensorDAO:
                 attribute = Attribute(
                     sensor_id=new_sensor.sensor_id,
                     sensor_name=new_sensor.name,
-                    attribute=attr_data.get('attribute'),
+                    attribute=attr_data.get('attribute_name'),
                     is_key_attribute=attr_data.get('is_key_attribute')
                 )
                 db.session.add(attribute)

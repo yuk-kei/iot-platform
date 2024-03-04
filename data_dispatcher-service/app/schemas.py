@@ -18,9 +18,9 @@ class QueryRequestSchema(ma.Schema):
 
 class LatestQueryRequestSchema(ma.Schema):
     device_name = fields.String(required=True, description='The device or service name')
-    start_time = fields.String(required=True, description='Start time string, either with standard ISO time format '
+    start_time = fields.String(missing="-24h", description='Start time string, either with standard ISO time format '
                                                           'or relative time like "-10s", "-30m", "-24h", "-3d"')
-    end_time = fields.String(missing="-0s", description='End time string, either with standard ISO time format '
+    end_time = fields.String(missing="0s", description='End time string, either with standard ISO time format '
                                                         'or relative time like "-20s", "-60m", "-48h", "-7d"')
 
 
