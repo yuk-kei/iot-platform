@@ -12,7 +12,7 @@ class RegistrationAttributeSchema(ma.Schema):
       ordered = True
       description = 'This schema represents an attribute.'
 
-   attribute_name = fields.Str(required=True)
+   attribute = fields.Str(required=True)
    is_key_attribute = fields.Int(required=True)
 
 
@@ -26,8 +26,8 @@ class RegistrationUrlSchema(ma.SQLAlchemySchema):
    url_type = fields.Str(required=True)
 
 
-class SensorRegistrationSchema(ma.Schema):
-   id = fields.Int(allow_none=True)
+class SensorRegistrationSchemaOutput(ma.Schema):
+   sensor_id = fields.Int(allow_none=True)
    sensor_uuid = fields.Str(allow_none=True)
    name = fields.Str()
    frequency = fields.Float(allow_none=True)
@@ -43,7 +43,8 @@ class SensorRegistrationSchema(ma.Schema):
    Attributes = fields.List(fields.Nested(RegistrationAttributeSchema))
    Urls = fields.List(fields.Nested(RegistrationUrlSchema))
 
-class SensorUpdateSchema(ma.Schema):
+class SensorRegistrationSchemaInput(ma.Schema):
+   sensor_uuid = fields.Str(allow_none=True)
    name = fields.Str()
    frequency = fields.Float(allow_none=True)
    category = fields.Str(allow_none=True)
@@ -75,6 +76,7 @@ class SensorSchema(ma.SQLAlchemySchema):
    vendor_pid = fields.Str()
    chip = fields.Str()
    rpi_id = fields.Int()
+   is_key_sensor = fields.Int()
 
    @validates('name')
    def validate_name(self, name):
@@ -126,7 +128,6 @@ class SensorDetailsSchema(ma.Schema):
 if __name__ == "__main__":
    # Example instance of SensorSchema
    sensor_schema = SensorSchema()
-   update_schema = SensorUpdateSchema()
 
    # Test data matching the structure of SensorSchema
    test_sensor_data = {
@@ -155,7 +156,6 @@ if __name__ == "__main__":
 
    # Serializing the test data
    serialized_data = sensor_schema.dump(test_sensor_data)
-   serialized_data_update = update_schema.dump(update_test)
 
    # Printing the serialized data
    print(serialized_data)

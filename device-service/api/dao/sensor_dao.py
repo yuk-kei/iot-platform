@@ -21,6 +21,7 @@ class SensorDAO:
             sensor_vendor=sensor_info.get('sensor_vendor', None),
             vendor_pid=sensor_info.get('vendor_id', None),
             chip=sensor_info.get('chip', None),
+            is_key_sensor=sensor_info.get('is_key_sensor', 0)
         )
 
         if rpi_name:
@@ -52,7 +53,7 @@ class SensorDAO:
                 attribute = Attribute(
                     sensor_id=new_sensor.sensor_id,
                     sensor_name=new_sensor.name,
-                    attribute=attr_data.get('attribute_name'),
+                    attribute=attr_data.get('attribute'),
                     is_key_attribute=attr_data.get('is_key_attribute')
                 )
                 db.session.add(attribute)
@@ -92,13 +93,21 @@ class SensorDAO:
             sensor = Sensor.query.get(sensor_identifier)
         elif isinstance(sensor_identifier, str):
             sensor = Sensor.query.filter_by(name=sensor_identifier).first()
+
         if sensor:
-            print("-----")
-            list = MachineSensorMap.query.filter_by(sensor_id=sensor.sensor_id).all()
+            attributes = Attribute.query.filter_by(sensor_id=sensor.sensor_id).all()
+            urls = Url.query.filter_by(sensor_id=sensor.sensor_id).all()
+            machines = MachineSensorMap.query.filter_by(sensor_id=sensor.sensor_id).all()
             machine_list = []
-            for mapping in list:
+            for mapping in machines:
                 machine_list.append(mapping.machine_name)
-            return sensor, machine_list
+            url = []
+            for u in urls:
+                url.append(u)
+            attribute = []
+            for a in attributes:
+                attribute.append(a)
+            return sensor, machine_list, attribute, url
         return sensor
 
 
@@ -176,12 +185,14 @@ class SensorDAO:
     def update(sensor_identifier, update_data):
         if isinstance(sensor_identifier, int):
             sensor_overview_to_update = Sensor.query.get(sensor_identifier)
-            sensor_attribute_update = Attribute.query.filter_by(sensor_id=sensor_identifier)
-            sensor_url_update = Url.query.filter_by(sensor_id=sensor_identifier)
+            Attribute.query.filter_by(sensor_id=sensor_identifier).delete()
+            Url.query.filter_by(sensor_id=sensor_identifier).delete
+            MachineSensorMap.query.filter_by(sensor_id=sensor_identifier).delete()
         elif isinstance(sensor_identifier, str):
             sensor_overview_to_update = Sensor.query.filter_by(name=sensor_identifier).first()
-            sensor_attribute_update = Attribute.query.filter_by(sensor_name=sensor_identifier)
-            sensor_url_update = Url.query.filter_by(sensor_name=sensor_identifier)
+            Attribute.query.filter_by(sensor_name=sensor_identifier).delete()
+            Url.query.filter_by(sensor_name=sensor_identifier).delete()
+            MachineSensorMap.query.filter_by(sensor_name=sensor_identifier).delete()
         else:
             raise ValueError('machine_identifier must be either an id or a name')
 
@@ -190,20 +201,40 @@ class SensorDAO:
             for key, value in update_data.items():
                 if hasattr(sensor_overview_to_update, key):
                     setattr(sensor_overview_to_update, key, value)
-            if sensor_attribute_update:
-                for attribute in sensor_attribute_update:
-                    if 'name' in update_data:
-                        setattr(attribute, 'sensor_name', update_data.get('name', None))
-                    if 'attribute_name' in update_data:
-                        setattr(attribute, 'attribute', update_data.get('attribute_name', None))
-                    if 'is_key_attribute' in update_data:
-                        setattr(attribute, 'is_key_attribute', update_data.get('is_key_attribute', None))
-            if sensor_url_update:
-                for url in sensor_url_update:
-                    if 'name' in update_data:
-                        setattr(url, 'sensor_name', update_data.get('name', None))
-                    if hasattr(url, key):
-                        setattr(url, key, value)
+            if 'Attributes' in update_data:
+                attributes = update_data.pop('Attributes', [])
+                for attr_data in attributes:
+                    attribute = Attribute(
+                        sensor_id=sensor_overview_to_update.sensor_id,
+                        sensor_name=sensor_overview_to_update.name,
+                        attribute=attr_data.get('attribute'),
+                        is_key_attribute=attr_data.get('is_key_attribute')
+                    )
+                    db.session.add(attribute)
+            if 'Urls' in update_data:
+                urls = update_data.pop('Urls', [])
+                print(urls)
+                for url_data in urls:
+                    url = Url(
+                        sensor_id=sensor_overview_to_update.sensor_id,
+                        sensor_name=sensor_overview_to_update.name,
+                        url=url_data.get('url'),
+                        url_type=url_data.get('url_type')
+                    )
+                    db.session.add(url)
+            if 'machine_list' in update_data:
+                machine_names = update_data.pop('machine_list', [])
+                for machine_name in machine_names:
+                    machine = Machine.query.filter_by(name=machine_name).first()
+                    if machine:
+                        machine_sensor_map = MachineSensorMap(
+                            machine_id=machine.machine_id,
+                            sensor_id=sensor_overview_to_update.sensor_id,
+                            machine_name=machine_name,
+                            sensor_name=sensor_overview_to_update.name,
+                            is_key_sensor=sensor_overview_to_update.is_key_sensor
+                        )
+                        db.session.add(machine_sensor_map)
 
             # Commit changes to the database
 
