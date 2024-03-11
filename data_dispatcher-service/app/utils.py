@@ -27,10 +27,11 @@ def parse_time_input(time_str):
         return datetime.now(timezone.utc) - delta
     else:
         # It's an absolute ISO format time
-        result_time = datetime.fromisoformat(time_str)
-        # If the datetime object is timezone-aware, convert it to UTC and make it naive
-        if result_time.tzinfo is None:
-            result_time = result_time.replace(tzinfo=timezone.utc)
+        result_time = parse(time_str)
+        # result_time = datetime.fromisoformat(time_str)
+        # # If the datetime object is timezone-aware, convert it to UTC and make it naive
+        # if result_time.tzinfo is None:
+        #     result_time = result_time.replace(tzinfo=timezone.utc)
         return result_time.astimezone(timezone.utc)
 
 
@@ -69,3 +70,4 @@ if __name__ == "__main__":
     print(datetime.utcnow())
     print(datetime.now())
     print(parse_time_input("-10h"))
+    print(parse_time_input("2024-03-04T22:24:41.010Z"))

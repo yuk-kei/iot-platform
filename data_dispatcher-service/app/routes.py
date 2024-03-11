@@ -149,7 +149,7 @@ def get_csv():
                                            frequency=frequency,
                                            end_time_str=end_time)
     if df is None:
-        return jsonify({"error": f"No data found for {field_name} in from {start_time} to {end_time} time ."}), 404
+        return jsonify({"error": f"No data found for {field_value} in from {start_time} to {end_time} time ."}), 404
     df = influx_handler.df_to_csv(df, iso_format=iso_format)
 
     buffer = io.StringIO()
@@ -157,7 +157,7 @@ def get_csv():
     # Seek to start
     buffer.seek(0)
     return Response(buffer.getvalue(), mimetype="text/csv",
-                    headers={"Content-disposition": f'"attachment; filename={field_value}_data.csv"'})
+                    headers={"Content-disposition": f'attachment; filename="{field_value}_data.csv"'})
 
 
 @data_blueprint.route("/large-csv", methods=['GET', 'POST'])
@@ -174,24 +174,28 @@ def get_large_csv():
     """
     endpoint = request.endpoint
     remote_ip = request.remote_addr
-    print(f"Received a POST request on endpoint {endpoint} from IP {remote_ip}")
+    print(f"Received a {request.method} request on endpoint {endpoint} from IP {remote_ip} at {datetime.now()}")
     if request.method == 'POST':
+        print(f"Request json info {request.json}")
         field_name = request.json.get('field_name', "measurement")
         field_value = request.json.get('field_value')
         start_time = request.json.get('start_time')
-        end_time = request.json.get('end_time', None)
+        end_time = request.json.get('end_time', "-0s")
         iso_format_str = request.args.get('iso_format', 'False')
 
     elif request.method == 'GET':
+        print(f"Request args info {request.args}")
         field_name = request.args.get('field_name', default="measurement")
         field_value = request.args.get('field_value')
+        start_time = request.args.get('start_time', )
         start_time = request.args.get('start_time')
-        end_time = request.args.get('end_time')
+        end_time = request.args.get('end_time', "-0s")
         iso_format_str = request.args.get('iso_format', default='False')
     else:
         return jsonify({'message': 'Invalid request method'}), 400
 
     iso_format = iso_format_str.lower() == 'true'
+
     try:
         start_time = parse_time_input(start_time)
         end_time = parse_time_input(end_time) if end_time else datetime.utcnow()
@@ -203,6 +207,7 @@ def get_large_csv():
         interval = timedelta(minutes=5)
         current_time = start_time
         first_chunk = True
+        print(f"Beginning to stream data from {start_time} to {end_time} to client.")
 
         while current_time < end_time:
             next_time = current_time + interval
@@ -223,13 +228,16 @@ def get_large_csv():
                 # Convert DataFrame to CSV, omit header if it's not the first chunk
                 yield df.to_csv(header=first_chunk, index=False)
                 first_chunk = False
-
+            print(f"Sent data from {start_time_str} to {end_time_str} to client.")
             current_time = next_time
 
     # Seek to start
-    response = Response(generate_data(), mimetype='text/csv')
-    response.headers.set('Content-Disposition', 'attachment', filename=f'{field_value}_data.csv')
-    return response
+    return Response(stream_with_context(generate_data()),
+                    mimetype='text/csv',
+                    headers={'Content-Disposition': f'attachment; filename="{field_value}_data.csv"'})
+    # response = Response(generate_data(), mimetype='text/csv')
+    # response.headers.set('Content-Disposition', 'attachment', filename=f'{field_value}_data.csv')
+    # return response
 
 
 @data_blueprint.route("/influx-query", methods=['GET'])
