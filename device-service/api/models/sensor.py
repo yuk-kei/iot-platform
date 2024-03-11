@@ -31,6 +31,7 @@ class Sensor(db.Model):
     chip = db.Column(db.String(255), nullable=True)
     rpi_name = db.Column(db.String(255), db.ForeignKey('rpis.name'), nullable=True)
     rpi_id = db.Column(db.Integer, nullable=True)
+    is_key_sensor = db.Column(db.Integer, nullable=True)
 
     def __repr__(self):
         return '<Sensor %r>' % self.name
@@ -69,7 +70,7 @@ class Attribute(db.Model):
     is_key_attribute = db.Column(db.Integer, nullable=True)
 
     def __repr__(self):
-        return '<Attributes %r>' % self.name
+        return '<Attributes %r>' % self.attribute
 
     def to_dict(self):
         """
@@ -104,7 +105,7 @@ class Url(db.Model):
     url_type = db.Column(db.String(255), nullable=True)
 
     def __repr__(self):
-        return '<Url_list %r>' % self.name
+        return '<Url_list %r>' % self.url
 
     def get_url(self):
         return self.url
