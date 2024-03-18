@@ -69,7 +69,7 @@ docker-build:
   script:
     - docker build --pull -t $ECR_REPO_URL/data_dispatcher-service:$APP_VERSION -f data_dispatcher-service/Dockerfile.data data_dispatcher-service
 #    - docker build --pull -t $ECR_REPO_URL/data_dispatcher-service -f data_dispatcher-service/Dockerfile.data data_dispatcher-service:$CI_COMMIT_REF_SLUG
-    - docker push $ECR_REPO_URL/data_dispatcher:$APP_VERSION
+    - docker push $ECR_REPO_URL/data_dispatcher-service:$APP_VERSION
     - docker build --pull -t $ECR_REPO_URL/device-service:$APP_VERSION  -f device-service/Dockerfile.device device-service
     - docker push $ECR_REPO_URL/device-service:$APP_VERSION
     - docker build --pull -t $ECR_REPO_URL/kafka-service:$APP_VERSION -f kafka-service/Dockerfile.kafka kafka-service
