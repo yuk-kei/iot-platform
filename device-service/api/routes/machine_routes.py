@@ -1,9 +1,10 @@
 from flask import Blueprint, jsonify, request
 from api.dao.machine_dao import MachineDAO
-from api.schemas.machine_schema import MachineSchema, SingleOverviewSchema, ResultSchema, AllMachineSchema, SensorsForMachine, KeySensorsSchema
+from api.schemas.machine_schema import MachineSchema, SingleOverviewSchema, ResultSchema, AllMachineSchema, \
+    SensorsForMachine, KeySensorsSchema
+
 machine_blueprint = Blueprint('machine_routes', __name__, url_prefix='/api/v1/machine')
 from apifairy import body, response
-
 
 machine_info = MachineSchema()
 single_overview = SingleOverviewSchema()
@@ -11,6 +12,7 @@ result = ResultSchema()
 all_machines = AllMachineSchema()
 sensors_machine = SensorsForMachine()
 key_sensors_schema = KeySensorsSchema(many=True)
+
 
 @machine_blueprint.route('/<machine_identifier>', methods=['GET'])
 @response(machine_info, 200)
@@ -109,8 +111,8 @@ def get_sensors_from_machine(machine_identifier):
     sensors, total = MachineDAO.get_sensors(machine_identifier, page, per_page)
 
     return {'sensors': [s.to_dict()
-                                for s in sensors],
-                    'total': total}
+                        for s in sensors],
+            'total': total}
 
 
 @machine_blueprint.route('/<machine_identifier>/key-sensors', methods=['GET'])

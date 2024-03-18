@@ -110,8 +110,6 @@ class SensorDAO:
             return sensor, machine_list, attribute, url
         return sensor
 
-
-
     @staticmethod
     def get_all_attributes(sensor_id, page=None, per_page=30):
         if page is None:
@@ -146,12 +144,12 @@ class SensorDAO:
     def get_all_details(page=1, per_page=50):
         query = (db.session
                  .query(
-                    Sensor.sensor_id,
-                    Sensor.name,
-                    Sensor.category,
-                    Sensor.frequency,
-                    MachineSensorMap.machine_id,
-                    MachineSensorMap.machine_name)
+            Sensor.sensor_id,
+            Sensor.name,
+            Sensor.category,
+            Sensor.frequency,
+            MachineSensorMap.machine_id,
+            MachineSensorMap.machine_name)
                  .outerjoin(MachineSensorMap, Sensor.sensor_id == MachineSensorMap.sensor_id))
         paginated = query.paginate(page=page, per_page=per_page, error_out=False)
         key_sensors = paginated.items
@@ -159,7 +157,6 @@ class SensorDAO:
 
         sensor_details = []
         for sensor in key_sensors:
-
             key_attributes = db.session.query(Attribute).filter(Attribute.sensor_id == sensor.sensor_id).all()
 
             attributes = [

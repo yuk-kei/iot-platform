@@ -1,7 +1,0 @@
-FROM python:3.11
-COPY requirements.txt /supervisor-app/requirements.txt
-WORKDIR /supervisor-app
-RUN pip install -r requirements.txt
-COPY . /supervisor-app
-CMD ["gunicorn", "-c", "guni_config.py", "run:app"]
-EXPOSE 9003

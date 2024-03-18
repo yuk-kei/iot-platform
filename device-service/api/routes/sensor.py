@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
 from apifairy import body, response
 from ..dao.sensor_dao import SensorDAO
-from ..schemas.sensor_schema import SensorRegistrationSchemaOutput, SensorSchema, SensorDetailsSchema, SensorRegistrationSchemaInput
+from ..schemas.sensor_schema import SensorRegistrationSchemaOutput, SensorSchema, SensorDetailsSchema, \
+    SensorRegistrationSchemaInput
 
 sensor_blueprint = Blueprint('sensors', __name__, url_prefix="/api/v1/sensors")
 
@@ -27,6 +28,7 @@ def get_sensors_details():
     sensors, total_items = SensorDAO.get_all_details(page, per_page)
     print(type(sensors))
     return sensors
+
 
 @sensor_blueprint.route('<sensor_identifier>/overview', methods=['GET'])
 @response(SensorRegistrationSchemaOutput, 200)
@@ -77,6 +79,7 @@ def get_key_attribute():
     key_attribute = SensorDAO.get_key_attribute(sensor_identifier=sensor_identifier,
                                                 attr_key_level=attr_key_level)
     return jsonify(key_attribute)
+
 
 @sensor_blueprint.route('/<sensor_identifier>/result', methods=['PUT'])
 @body(SensorRegistrationSchemaInput)
