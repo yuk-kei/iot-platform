@@ -2,39 +2,39 @@ version: '3'
 
 services:
   kafka-dispatcher:
-    image: kafka-service:beta-0.1.0
+    image: ${AWS_ECR_URL}/kafka-service
 #    build:
 #      context: ./kafka-service
 #      dockerfile: Dockerfile.device
     ports:
       - "9002:9002"
     volumes:
-      - ./device-service:/device-app
+      - ./device-service:/kafka-service
     networks:
       - iot-platform
 
   data-dispatcher:
 #    image: data-dispatcher:beta-0.1.0
-    image: data_dispatcher-service:beta-0.1.0
+    image: ${AWS_ECR_URL}/data_dispatcher-service
 #    build:
 #      context: ./data_dispatcher-service
 #      dockerfile: Dockerfile.data
     ports:
       - "9001:9001"
     volumes:
-      - ./data_dispatcher-service:/data-app
+      - ./data_dispatcher-service:/data_dispatcher-service
     networks:
       - iot-platform
 
   device-manager:
-    image: device-service:beta-0.1.0
+    image: ${AWS_ECR_URL}/device-service:beta-0.1.0
 #    build:
 #      context: ./device-service
 #      dockerfile: Dockerfile.device
     ports:
       - "9010:9010"
     volumes:
-      - ./device-service:/device-app
+      - ./device-service:/device-service
     networks:
       - iot-platform
 
