@@ -2,7 +2,7 @@ version: '3'
 
 services:
   kafka-dispatcher:
-    image: kafka-service
+    image: kafka-service:beta-0.1.0
 #    build:
 #      context: ./kafka-service
 #      dockerfile: Dockerfile.device
@@ -15,7 +15,7 @@ services:
 
   data-dispatcher:
 #    image: data-dispatcher:beta-0.1.0
-    image: data_dispatcher-service
+    image: data_dispatcher-service:beta-0.1.0
 #    build:
 #      context: ./data_dispatcher-service
 #      dockerfile: Dockerfile.data
@@ -27,7 +27,7 @@ services:
       - iot-platform
 
   device-manager:
-    image: device-service
+    image: device-service:beta-0.1.0
 #    build:
 #      context: ./device-service
 #      dockerfile: Dockerfile.device
