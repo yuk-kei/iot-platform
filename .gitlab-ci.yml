@@ -67,14 +67,19 @@ docker-build:
     - apk --update add aws-cli
     - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO_URL
   script:
-    - docker build --pull -t $ECR_REPO_URL/data_dispatcher-service:$APP_VERSION -f data_dispatcher-service/Dockerfile.data data_dispatcher-service
-#    - docker build --pull -t $ECR_REPO_URL/data_dispatcher-service -f data_dispatcher-service/Dockerfile.data data_dispatcher-service:$CI_COMMIT_REF_SLUG
+#    - docker build --pull -t $ECR_REPO_URL/data_dispatcher-service:$APP_VERSION -f data_dispatcher-service/Dockerfile.data data_dispatcher-service
+##    - docker build --pull -t $ECR_REPO_URL/data_dispatcher-service -f data_dispatcher-service/Dockerfile.data data_dispatcher-service:$CI_COMMIT_REF_SLUG
+#    - docker push $ECR_REPO_URL/data_dispatcher-service:$APP_VERSION
+#    - docker build --pull -t $ECR_REPO_URL/device-service:$APP_VERSION  -f device-service/Dockerfile.device device-service
+#    - docker push $ECR_REPO_URL/device-service:$APP_VERSION
+#    - docker build --pull -t $ECR_REPO_URL/kafka-service:$APP_VERSION -f kafka-service/Dockerfile.kafka kafka-service
+#    - docker push $ECR_REPO_URL/kafka-service:$APP_VERSION
+    - docker build --pull -t $ECR_REPO_URL/data_dispatcher-service -f data_dispatcher-service/Dockerfile.data data_dispatcher-service
     - docker push $ECR_REPO_URL/data_dispatcher-service:$APP_VERSION
-    - docker build --pull -t $ECR_REPO_URL/device-service:$APP_VERSION  -f device-service/Dockerfile.device device-service
+    - docker build --pull -t $ECR_REPO_URL/device-service -f device-service/Dockerfile.device device-service
     - docker push $ECR_REPO_URL/device-service:$APP_VERSION
-    - docker build --pull -t $ECR_REPO_URL/kafka-service:$APP_VERSION -f kafka-service/Dockerfile.kafka kafka-service
+    - docker build --pull -t $ECR_REPO_URL/kafka-service -f kafka-service/Dockerfile.kafka kafka-service
     - docker push $ECR_REPO_URL/kafka-service:$APP_VERSION
-
 
 
 deploy:
