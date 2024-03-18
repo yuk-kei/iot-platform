@@ -14,32 +14,45 @@ cache:
 
 # before_script:
 #   - mkdir -p .cache/pip
-
-build:
+build_and_test_data_dispatcher:
   stage: build
   image: python:3.10
   script:
-    - echo "Installing dependencies..."
-    - echo $CI_REGISTRY_USER
-    - echo $CI_REGISTRY_PASSWORD
-    - echo $CI_REGISTRY
-    - CI=false npm run build
-    - echo "Dependencies installed."
+    - cd data_dispatcher-service
+    - pip install -r requirements.txt
+#    - pytest # Assuming you have tests set up
+
+build_and_test_device_service:
+  stage: build
+  image: python:3.10
+  script:
+    - cd device-service
+    - pip install -r requirements.txt
+#    - pytest
+
+build_and_test_kafka_service:
+  stage: build
+  image: python:3.10
+  script:
+    - cd kafka-service
+    - pip install -r requirements.txt
+#    - pytest
+
+#build:
+#  stage: build
+#  image: python:3.10
+#  script:
+#    - echo "Installing dependencies..."
+#    - echo $CI_REGISTRY_USER
+#    - echo $CI_REGISTRY_PASSWORD
+#    - echo $CI_REGISTRY
+#    - echo "Dependencies installed."
 
   # artifacts:
   #   expire_in: 1 hour
   #   paths:
   #     - frontend/build
   #     - frontend/node_modules/
-
-# test:
-#   stage: test
-#   image: node
-#   script:
-#     - cd frontend
-#     - echo "Testing App"
-#     - CI=false npm run test
-#     - echo "Test successfully!"
 
 docker-build:
   stage: docker-build
@@ -55,6 +68,7 @@ docker-build:
     - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO_URL
   script:
     - docker build --pull -t $ECR_REPO_URL/data_dispatcher-service -f data_dispatcher-service/Dockerfile.data data_dispatcher-service:$APP_VERSION
+#    - docker build --pull -t $ECR_REPO_URL/data_dispatcher-service -f data_dispatcher-service/Dockerfile.data data_dispatcher-service:$CI_COMMIT_REF_SLUG
     - docker push $ECR_REPO_URL/data_dispatcher:$APP_VERSION
     - docker build --pull -t $ECR_REPO_URL/device-service -f device-service/Dockerfile.device device-service:$APP_VERSION
     - docker push $ECR_REPO_URL/device-service:$APP_VERSION
