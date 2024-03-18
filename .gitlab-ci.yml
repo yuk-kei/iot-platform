@@ -90,7 +90,7 @@ deploy:
   script:
     - chmod 400 $SSH_PRIVATE_KEY
     - >
-      ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY fabworks@$PROD_SERVER_IP
+      ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY fabworks@$PROD_SERVER_IP "
       cd ~/x42_backend/iot-platform &&
       aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO_URL &&
       docker-compose pull &&
