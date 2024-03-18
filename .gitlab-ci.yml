@@ -77,9 +77,9 @@ docker-build:
     - docker build --pull -t $ECR_REPO_URL/data_dispatcher-service -f data_dispatcher-service/Dockerfile.data data_dispatcher-service
     - docker push $ECR_REPO_URL/data_dispatcher-service
     - docker build --pull -t $ECR_REPO_URL/device-service -f device-service/Dockerfile.device device-service
-    - docker push $ECR_REPO_URL/device-service:$APP_VERSION
+    - docker push $ECR_REPO_URL/device-service
     - docker build --pull -t $ECR_REPO_URL/kafka-service -f kafka-service/Dockerfile.kafka kafka-service
-    - docker push $ECR_REPO_URL/kafka-service:$APP_VERSION
+    - docker push $ECR_REPO_URL/kafka-service
 
 
 deploy:
