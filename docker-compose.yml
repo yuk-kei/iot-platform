@@ -9,7 +9,7 @@ services:
     ports:
       - "9002:9002"
     volumes:
-      - ./device-service:/kafka-service
+      - ./kafka-service:/kafka-service
     networks:
       - iot-platform
 
@@ -27,7 +27,7 @@ services:
       - iot-platform
 
   device-manager:
-    image: ${AWS_ECR_URL}/device-service:beta-0.1.0
+    image: ${AWS_ECR_URL}/device-service
 #    build:
 #      context: ./device-service
 #      dockerfile: Dockerfile.device
