@@ -1,11 +1,24 @@
 version: '3'
 
 services:
+  kafka-dispatcher:
+    image: kafka-service
+#    build:
+#      context: ./kafka-service
+#      dockerfile: Dockerfile.device
+    ports:
+      - "9002:9002"
+    volumes:
+      - ./device-service:/device-app
+    networks:
+      - iot-platform
+
   data-dispatcher:
-    image: data-dispatcher:beta-0.1.0
-    build:
-      context: ./data_dispatcher-service
-      dockerfile: Dockerfile.data
+#    image: data-dispatcher:beta-0.1.0
+    image: data_dispatcher-service
+#    build:
+#      context: ./data_dispatcher-service
+#      dockerfile: Dockerfile.data
     ports:
       - "9001:9001"
     volumes:
@@ -14,30 +27,16 @@ services:
       - iot-platform
 
   device-manager:
-    image: device-manager:beta-0.1.0
-    build:
-      context: ./device-service
-      dockerfile: Dockerfile.device
+    image: device-service
+#    build:
+#      context: ./device-service
+#      dockerfile: Dockerfile.device
     ports:
       - "9010:9010"
     volumes:
       - ./device-service:/device-app
     networks:
       - iot-platform
-    # ... (your Flask app 2 configuration)
-
-  kafka-dispatcher:
-    image: kafka-service:beta-0.1.0
-    build:
-      context: ./kafka-service
-      dockerfile: Dockerfile.device
-    ports:
-      - "9002:9002"
-    volumes:
-      - ./device-service:/device-app
-    networks:
-      - iot-platform
-    # ... (your Flask app 2 configuration)
 
 networks:
   iot-platform:

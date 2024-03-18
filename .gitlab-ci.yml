@@ -67,38 +67,50 @@ docker-build:
     - apk --update add aws-cli
     - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO_URL
   script:
-#    - docker build --pull -t $ECR_REPO_URL/data_dispatcher-service:$APP_VERSION -f data_dispatcher-service/Dockerfile.data data_dispatcher-service
-##    - docker build --pull -t $ECR_REPO_URL/data_dispatcher-service -f data_dispatcher-service/Dockerfile.data data_dispatcher-service:$CI_COMMIT_REF_SLUG
-#    - docker push $ECR_REPO_URL/data_dispatcher-service:$APP_VERSION
-#    - docker build --pull -t $ECR_REPO_URL/device-service:$APP_VERSION  -f device-service/Dockerfile.device device-service
-#    - docker push $ECR_REPO_URL/device-service:$APP_VERSION
-#    - docker build --pull -t $ECR_REPO_URL/kafka-service:$APP_VERSION -f kafka-service/Dockerfile.kafka kafka-service
-#    - docker push $ECR_REPO_URL/kafka-service:$APP_VERSION
-    - docker build --pull -t $ECR_REPO_URL/data_dispatcher-service -f data_dispatcher-service/Dockerfile.data data_dispatcher-service
-    - docker push $ECR_REPO_URL/data_dispatcher-service
-    - docker build --pull -t $ECR_REPO_URL/device-service -f device-service/Dockerfile.device device-service
-    - docker push $ECR_REPO_URL/device-service
-    - docker build --pull -t $ECR_REPO_URL/kafka-service -f kafka-service/Dockerfile.kafka kafka-service
-    - docker push $ECR_REPO_URL/kafka-service
+    - docker build --pull -t $ECR_REPO_URL/data_dispatcher-service:$APP_VERSION -f data_dispatcher-service/Dockerfile.data data_dispatcher-service
+#    - docker build --pull -t $ECR_REPO_URL/data_dispatcher-service -f data_dispatcher-service/Dockerfile.data data_dispatcher-service:$CI_COMMIT_REF_SLUG
+    - docker push $ECR_REPO_URL/data_dispatcher-service:$APP_VERSION
+    - docker build --pull -t $ECR_REPO_URL/device-service:$APP_VERSION  -f device-service/Dockerfile.device device-service
+    - docker push $ECR_REPO_URL/device-service:$APP_VERSION
+    - docker build --pull -t $ECR_REPO_URL/kafka-service:$APP_VERSION -f kafka-service/Dockerfile.kafka kafka-service
+    - docker push $ECR_REPO_URL/kafka-service:$APP_VERSION
+#    - docker build --pull -t $ECR_REPO_URL/data_dispatcher-service -f data_dispatcher-service/Dockerfile.data data_dispatcher-service
+#    - docker push $ECR_REPO_URL/data_dispatcher-service
+#    - docker build --pull -t $ECR_REPO_URL/device-service -f device-service/Dockerfile.device device-service
+#    - docker push $ECR_REPO_URL/device-service
+#    - docker build --pull -t $ECR_REPO_URL/kafka-service -f kafka-service/Dockerfile.kafka kafka-service
+#    - docker push $ECR_REPO_URL/kafka-service
 
 
 deploy:
   stage: deploy
   image: kroniak/ssh-client
   before_script:
-    - echo "deploying app"
+    - echo "Deploying app using Docker Compose..."
   script:
     - chmod 400 $SSH_PRIVATE_KEY
-    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY fabworks@$PROD_SERVER_IP "aws ecr get-login-password --region  $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO_URL"
-    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY fabworks@$PROD_SERVER_IP "docker pull $ECR_REPO_URL/data_dispatcher-service:latest"
-    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY fabworks@$PROD_SERVER_IP "docker stop data_dispatcher-service || true && docker rm data_dispatcher-service || true"
-    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY fabworks@$PROD_SERVER_IP "docker run -p 9010:9010 -d --name device-service $ECR_REPO_URL/device-service:latest"
-    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY fabworks@$PROD_SERVER_IP "docker pull $ECR_REPO_URL/device-service:latest"
-    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY fabworks@$PROD_SERVER_IP "docker stop device-service || true && docker rm kafka-service || true"
-    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY fabworks@$PROD_SERVER_IP "docker run -p 9001:9001 -d --name device-service $ECR_REPO_URL/device-service:latest"
-    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY fabworks@$PROD_SERVER_IP "docker pull $ECR_REPO_URL/kafka-service:latest"
-    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY fabworks@$PROD_SERVER_IP "docker stop kafka-service || true && docker rm kafka-service || true"
-    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY fabworks@$PROD_SERVER_IP "docker run -p 9002:9002 -d --name kafka-service $ECR_REPO_URL/kafka-service:latest"
+    - >
+      ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY fabworks@$PROD_SERVER_IP
+      cd ~/x42_backend/iot-platform &&
+      aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO_URL &&
+      docker-compose pull &&
+      docker-compose down &&
+      docker-compose up -d
+      "
+#  before_script:
+#    - echo "deploying app"
+#  script:
+#    - chmod 400 $SSH_PRIVATE_KEY
+#    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY fabworks@$PROD_SERVER_IP "aws ecr get-login-password --region  $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO_URL"
+#    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY fabworks@$PROD_SERVER_IP "docker pull $ECR_REPO_URL/data_dispatcher-service:latest"
+#    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY fabworks@$PROD_SERVER_IP "docker stop data_dispatcher-service || true && docker rm data_dispatcher-service || true"
+#    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY fabworks@$PROD_SERVER_IP "docker run -p 9010:9010 -d --name device-service $ECR_REPO_URL/device-service:latest"
+#    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY fabworks@$PROD_SERVER_IP "docker pull $ECR_REPO_URL/device-service:latest"
+#    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY fabworks@$PROD_SERVER_IP "docker stop device-service || true && docker rm kafka-service || true"
+#    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY fabworks@$PROD_SERVER_IP "docker run -p 9001:9001 -d --name device-service $ECR_REPO_URL/device-service:latest"
+#    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY fabworks@$PROD_SERVER_IP "docker pull $ECR_REPO_URL/kafka-service:latest"
+#    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY fabworks@$PROD_SERVER_IP "docker stop kafka-service || true && docker rm kafka-service || true"
+#    - ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY fabworks@$PROD_SERVER_IP "docker run -p 9002:9002 -d --name kafka-service $ECR_REPO_URL/kafka-service:latest"
 
   # only:
   #   - master
