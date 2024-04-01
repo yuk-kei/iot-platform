@@ -69,6 +69,14 @@ This Flask-based application is designed to handle data streams from Kafka. It o
      
    - Run in gurnicorn:
    
+   - 
+   
+   - 
+   
+   - 
+   
+   - 
+   
      ```
      gunicorn -c guni_config.py run:app
      ```

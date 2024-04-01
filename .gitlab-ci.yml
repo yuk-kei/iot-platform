@@ -38,22 +38,6 @@ build_and_test_kafka_service:
     - pip install -r requirements.txt
 #    - pytest
 
-#build:
-#  stage: build
-#  image: python:3.10
-#  script:
-#    - echo "Installing dependencies..."
-#    - echo $CI_REGISTRY_USER
-#    - echo $CI_REGISTRY_PASSWORD
-#    - echo $CI_REGISTRY
-#    - echo "Dependencies installed."
-
-  # artifacts:
-  #   expire_in: 1 hour
-  #   paths:
-  #     - frontend/build
-  #     - frontend/node_modules/
-
 docker-build:
   stage: docker-build
   image: docker
