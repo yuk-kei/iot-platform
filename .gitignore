@@ -102,3 +102,6 @@ data_dispatcher-service/*.out
 **/*.pid
 ### DS_store
 **/.DS_Store
+
+## Nginx
+/nginx
