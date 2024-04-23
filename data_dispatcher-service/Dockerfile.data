@@ -1,0 +1,7 @@
+FROM python:3.10
+COPY requirements.txt /data_dispatcher-service/requirements.txt
+WORKDIR /data_dispatcher-service
+RUN pip install -r requirements.txt
+COPY . /data_dispatcher-service
+CMD ["nohup", "gunicorn", "-c", "guni_config.py", "run:app", "&"]
+EXPOSE 9001
