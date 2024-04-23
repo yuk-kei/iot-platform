@@ -107,3 +107,5 @@ data_dispatcher-service/*.out
 /nginx
 /nginx/*
 /nginx/*
+!/bfg-1.14.0.jar
+/bfg-1.14.0.jar
