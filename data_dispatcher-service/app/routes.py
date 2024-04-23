@@ -157,7 +157,7 @@ def get_csv():
     # Seek to start
     buffer.seek(0)
     return Response(buffer.getvalue(), mimetype="text/csv",
-                    headers={"Content-disposition": f'attachment; filename="{field_value}_data.csv"'})
+                    headers={"Content-disposition": f'attachment; filename="{field_value}_{start_time}_to_{end_time}.csv"'})
 
 
 @data_blueprint.route("/large-csv", methods=['GET', 'POST'])
@@ -234,7 +234,7 @@ def get_large_csv():
     # Seek to start
     return Response(stream_with_context(generate_data()),
                     mimetype='text/csv',
-                    headers={'Content-Disposition': f'attachment; filename="{field_value}_data.csv"'})
+                    headers={'Content-Disposition': f'attachment; filename="{field_value}_{start_time}_to_{end_time}.csv"'})
     # response = Response(generate_data(), mimetype='text/csv')
     # response.headers.set('Content-Disposition', 'attachment', filename=f'{field_value}_data.csv')
     # return response

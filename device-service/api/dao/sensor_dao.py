@@ -195,9 +195,11 @@ class SensorDAO:
 
         if sensor_overview_to_update:
             # Update attributes
+            results = {}
             for key, value in update_data.items():
                 if hasattr(sensor_overview_to_update, key):
                     setattr(sensor_overview_to_update, key, value)
+                    results[key] = value
             if 'Attributes' in update_data:
                 attributes = update_data.pop('Attributes', [])
                 for attr_data in attributes:
@@ -208,6 +210,7 @@ class SensorDAO:
                         is_key_attribute=attr_data.get('is_key_attribute')
                     )
                     db.session.add(attribute)
+                results['Attributes'] = attributes
             if 'Urls' in update_data:
                 urls = update_data.pop('Urls', [])
                 print(urls)
@@ -219,6 +222,7 @@ class SensorDAO:
                         url_type=url_data.get('url_type')
                     )
                     db.session.add(url)
+                results['Urls'] = urls
             if 'machine_list' in update_data:
                 machine_names = update_data.pop('machine_list', [])
                 for machine_name in machine_names:
@@ -232,11 +236,12 @@ class SensorDAO:
                             is_key_sensor=sensor_overview_to_update.is_key_sensor
                         )
                         db.session.add(machine_sensor_map)
+                results['machine_list'] = machine_names
 
             # Commit changes to the database
 
             db.session.commit()
-            return sensor_overview_to_update
+            return results
         return None
 
 
