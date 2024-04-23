@@ -1,7 +1,0 @@
-FROM python:3.10
-COPY requirements.txt /kafka-service/requirements.txt
-WORKDIR /kafka-service
-RUN pip install -r requirements.txt
-COPY . /kafka-service
-CMD ["nohup", "gunicorn", "-c", "guni_config.py", "run:app", "&"]
-EXPOSE 9002
