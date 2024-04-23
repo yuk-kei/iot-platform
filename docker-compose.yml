@@ -3,6 +3,7 @@ version: '3'
 services:
   kafka-dispatcher:
     image: ${AWS_ECR_URL}/kafka-service
+    restart: always
 #    build:
 #      context: ./kafka-service
 #      dockerfile: Dockerfile.device
@@ -16,6 +17,7 @@ services:
   data-dispatcher:
 #    image: data-dispatcher:beta-0.1.0
     image: ${AWS_ECR_URL}/data_dispatcher-service
+    restart: always
 #    build:
 #      context: ./data_dispatcher-service
 #      dockerfile: Dockerfile.data
@@ -28,6 +30,7 @@ services:
 
   device-manager:
     image: ${AWS_ECR_URL}/device-service
+    restart: always
 #    build:
 #      context: ./device-service
 #      dockerfile: Dockerfile.device

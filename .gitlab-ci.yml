@@ -74,7 +74,7 @@ deploy:
     - chmod 400 $SSH_PRIVATE_KEY
     - >
       ssh -o StrictHostKeyChecking=no -i $SSH_PRIVATE_KEY fabworks@$PROD_SERVER_IP "
-      cd ~/x42_shell_code &&
+      cd ~/x42_shell_code/restart_single_service/ &&
       ./stop_backend.sh &&
       cd ~/x42_backend/iot-platform &&
       export AWS_ECR_URL=$ECR_REPO_URL &&
